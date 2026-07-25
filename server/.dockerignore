@@ -1,0 +1,12 @@
+# ---- Backend .dockerignore ----
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.git
+.gitignore
+.env
+db.sqlite3
+media/
+staticfiles/
+*.md
