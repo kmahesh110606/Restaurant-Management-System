@@ -206,6 +206,36 @@ Restaurant-Management-System/
 ├── .env.example
 └── README.md
 ```
+## Project Goals & Prioritization
+
+### MoSCoW Prioritization
+
+| Priority   | Features                                                                 |
+|------------|--------------------------------------------------------------------------|
+| **Must Have** | Role-based login (Admin, Manager, Staff, Customer), Reservations, Menu management, Order management, Billing workflow, JWT authentication |
+| **Should Have** | Analytics dashboard (sales, popular items, peak hours), Staff scheduling, QR regeneration, Token workflow |
+| **Could Have** | Customer feedback system, Loyalty points, Multi-language support, Mobile PWA |
+| **Won’t Have (for now)** | AI-based demand forecasting, Advanced CRM integration, Third-party delivery partner APIs |
+
+---
+
+### Success Metrics
+
+- Reduce double-bookings by **90%** through digital reservations  
+- Improve order-to-delivery cycle time by **30%**  
+- Increase customer satisfaction scores (feedback forms, ratings)  
+- Achieve adoption by at least **3 pilot restaurants** in first release  
+- Maintain **>99% uptime** in Dockerized deployment  
+
+---
+
+### Assumptions & Constraints
+
+- Application requires **internet connectivity** for full functionality  
+- Customers must have **QR-capable devices** for menu access  
+- Deployment assumes **Docker runtime** and cloud hosting (Azure/Postgres)  
+- Role-based authentication enforced via **JWT tokens**  
+- Initial scope limited to **single-branch restaurants**, multi-branch scaling planned later  
 
 ## License
 
