@@ -12,7 +12,7 @@ from restaurant.views import (
     TableViewSet, TokenViewSet, CustomerViewSet,
     OrderViewSet, BillViewSet,
     StaffProfileViewSet, AnalyticsViewSet,
-    staff_login, staff_me,
+    staff_login, staff_me, google_login, restaurant_signup,
 )
 
 router = DefaultRouter()
@@ -33,7 +33,10 @@ urlpatterns = [
     # Auth
     path('auth/login/', staff_login, name='staff-login'),
     path('auth/me/', staff_me, name='staff-me'),
+    path('auth/google/', google_login, name='google-login'),
+    path('auth/signup/', restaurant_signup, name='restaurant-signup'),
 
     # Router URLs
     path('', include(router.urls)),
 ]
+

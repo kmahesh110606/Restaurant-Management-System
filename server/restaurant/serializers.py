@@ -306,3 +306,54 @@ class LoginSerializer(serializers.Serializer):
     """Staff login — returns JWT tokens."""
     username = serializers.CharField()
     password = serializers.CharField()
+
+
+class GoogleLoginSerializer(serializers.Serializer):
+    """Owner-only Google OAuth login — accepts Google ID token."""
+    id_token = serializers.CharField()
+
+
+class RestaurantSignupSerializer(serializers.Serializer):
+    """
+    New restaurant owner registration.
+    Creates User + Restaurant + StaffProfile (admin role) in one step.
+    """
+    # Owner account fields
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(min_length=8, write_only=True)
+    first_name = serializers.CharField(max_length=150, required=False, default='')
+    last_name = serializers.CharField(max_length=150, required=False, default='')
+    email = serializers.EmailField()
+    phone_number = serializers.CharField(max_length=17, required=False, default='')
+
+    # Restaurant fields
+    restaurant_name = serializers.CharField(max_length=200)
+    restaurant_slug = serializers.SlugField(max_length=100)
+    restaurant_description = serializers.CharField(required=False, default='', allow_blank=True)
+    restaurant_address = serializers.CharField(required=False, default='', allow_blank=True)
+    restaurant_phone = serializers.CharField(max_length=20, required=False, default='', allow_blank=True)
+    workflow_type = serializers.ChoiceField(choices=Restaurant.WORKFLOW_CHOICES, default='table')
+
+    # Theming (optional)
+    primary_color = serializers.CharField(max_length=7, default='#E53935')
+    secondary_color = serializers.CharField(max_length=7, default='#1a1a1a')
+    accent_color = serializers.CharField(max_length=7, default='#FFB300')
+    font_family = serializers.CharField(max_length=100, default='Inter')
+
+    # Optional: Google ID token (for Google-based signup)
+    google_id_token = serializers.CharField(required=False, allow_blank=True, default='')
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already exists.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return value
+
+    def validate_restaurant_slug(self, value):
+        if Restaurant.objects.filter(slug=value).exists():
+            raise serializers.ValidationError("This restaurant slug is already taken.")
+        return value

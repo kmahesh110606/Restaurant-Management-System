@@ -34,7 +34,7 @@ from restaurant.serializers import (
     OrderItemSerializer,
     BillSerializer, BillCreateSerializer, BillPaymentSerializer,
     StaffProfileSerializer, StaffCreateSerializer,
-    LoginSerializer,
+    LoginSerializer, GoogleLoginSerializer, RestaurantSignupSerializer,
 )
 from restaurant.permissions import (
     IsAdmin, IsStaff, IsAdminOrReadOnly, IsAdminOrKitchen, IsBillerOrAdmin,
@@ -119,6 +119,143 @@ def staff_me(request):
         'role': profile.role,
         'restaurant': RestaurantSerializer(profile.restaurant).data,
     })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def google_login(request):
+    """
+    Owner-only Google OAuth login.
+    Validates a Google ID token, finds an existing admin user linked to
+    that email, and returns JWT tokens.
+    """
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
+    from django.conf import settings
+
+    serializer = GoogleLoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    token = serializer.validated_data['id_token']
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            settings.GOOGLE_CLIENT_ID,
+        )
+    except ValueError:
+        return Response(
+            {'detail': 'Invalid Google token.'},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    email = idinfo.get('email')
+    if not email:
+        return Response(
+            {'detail': 'Google account has no email.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Find user by email — must be a restaurant owner (admin role)
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(
+            {'detail': 'No account found with this Google email. Please sign up first.'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    profile = getattr(user, 'staff_profile', None)
+    if profile is None or profile.role != 'admin':
+        return Response(
+            {'detail': 'Google sign-in is only available for restaurant owners.'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if not profile.is_active:
+        return Response(
+            {'detail': 'Your account is deactivated.'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        },
+        'role': profile.role,
+        'restaurant': RestaurantSerializer(profile.restaurant).data,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def restaurant_signup(request):
+    """
+    Register a new restaurant owner with their restaurant.
+    Creates User + Restaurant + StaffProfile (admin role) in one transaction.
+    """
+    from django.db import transaction
+
+    serializer = RestaurantSignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    with transaction.atomic():
+        # Create the owner user
+        user = User.objects.create_user(
+            username=data['username'],
+            password=data['password'],
+            first_name=data.get('first_name', ''),
+            last_name=data.get('last_name', ''),
+            email=data['email'],
+        )
+
+        # Create the restaurant
+        restaurant = Restaurant.objects.create(
+            name=data['restaurant_name'],
+            slug=data['restaurant_slug'],
+            description=data.get('restaurant_description', ''),
+            address=data.get('restaurant_address', ''),
+            phone=data.get('restaurant_phone', ''),
+            workflow_type=data.get('workflow_type', 'table'),
+            primary_color=data.get('primary_color', '#E53935'),
+            secondary_color=data.get('secondary_color', '#1a1a1a'),
+            accent_color=data.get('accent_color', '#FFB300'),
+            font_family=data.get('font_family', 'Inter'),
+            owner=user,
+        )
+
+        # Create admin staff profile
+        StaffProfile.objects.create(
+            user=user,
+            restaurant=restaurant,
+            role='admin',
+            phone_number=data.get('phone_number', ''),
+        )
+
+    # Auto-login: generate JWT tokens
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        },
+        'role': 'admin',
+        'restaurant': RestaurantSerializer(restaurant).data,
+    }, status=status.HTTP_201_CREATED)
 
 
 # ===========================================================================

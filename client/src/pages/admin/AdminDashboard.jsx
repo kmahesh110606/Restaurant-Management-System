@@ -1,9 +1,18 @@
 /**
- * AdminDashboard — Overview page with quick stats.
+ * AdminDashboard — Overview page with quick stats, Microsoft Fluent UI icons, and enhanced layout spacing.
  */
 
 import { useEffect, useState } from 'react';
-import { IoReceipt, IoCash, IoPeople, IoTrendingUp } from 'react-icons/io5';
+import {
+  Receipt24Filled,
+  Money24Filled,
+  People24Filled,
+  DataTrending24Filled,
+  Clock24Filled,
+  ArrowRight24Regular,
+  Grid24Filled,
+} from '@fluentui/react-icons';
+import { Link } from 'react-router-dom';
 import { getAnalyticsSummary } from '../../api/analytics';
 import { getOrders } from '../../api/orders';
 import StatusBadge from '../../components/StatusBadge';
@@ -33,67 +42,105 @@ export default function AdminDashboard() {
   }
 
   const stats = [
-    { label: 'Total Orders (30d)', value: summary?.total_orders || 0, icon: IoReceipt, color: 'var(--color-primary)' },
-    { label: 'Revenue (30d)', value: `₹${(summary?.total_revenue || 0).toLocaleString()}`, icon: IoCash, color: 'var(--color-success)' },
-    { label: 'Customers (30d)', value: summary?.total_customers || 0, icon: IoPeople, color: 'var(--color-accent)' },
-    { label: 'Avg Order Value', value: `₹${(summary?.avg_order_value || 0).toFixed(0)}`, icon: IoTrendingUp, color: 'var(--color-info)' },
+    { label: 'Total Orders (30d)', value: summary?.total_orders || 0, icon: Receipt24Filled, color: '#E53935', bg: 'rgba(229,57,53,0.12)' },
+    { label: 'Revenue (30d)', value: `₹${(summary?.total_revenue || 0).toLocaleString()}`, icon: Money24Filled, color: '#4CAF50', bg: 'rgba(76,175,80,0.12)' },
+    { label: 'Customers (30d)', value: summary?.total_customers || 0, icon: People24Filled, color: '#FFB300', bg: 'rgba(255,179,0,0.12)' },
+    { label: 'Avg Order Value', value: `₹${(summary?.avg_order_value || 0).toFixed(0)}`, icon: DataTrending24Filled, color: '#42A5F5', bg: 'rgba(66,165,245,0.12)' },
   ];
 
   return (
-    <div className="animate-fade-in">
-      <h1 className="text-2xl font-bold text-[var(--color-text-heading)] mb-6">Dashboard</h1>
+    <div className="animate-fade-in w-full space-y-8 pb-12">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#262626]">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E53935] to-[#FF8F00] flex items-center justify-center text-white shadow-lg shadow-[#E53935]/20">
+            <Grid24Filled className="text-xl" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-[#FAFAFA] tracking-tight">Overview Dashboard</h1>
+            <p className="text-xs text-[#9E9E9E] mt-0.5 font-medium">Real-time statistics & today's customer ordering stream</p>
+          </div>
+        </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <Link to="/admin/orders" className="btn btn-secondary text-xs font-extrabold px-4 py-2.5 rounded-xl gap-2 hover:border-[#FF5252]/50">
+          <span>View All Orders</span>
+          <ArrowRight24Regular className="text-sm" />
+        </Link>
+      </div>
+
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="card p-5">
-            <div className="flex items-center gap-3">
+          <div
+            key={stat.label}
+            className="card p-6 bg-[#1A1A1D] border-[#26262A] shadow-2xl hover:border-[#3E3E45] transition-all duration-300 relative overflow-hidden group rounded-2xl"
+          >
+            <div className="flex items-center gap-4">
               <div
-                className="w-12 h-12 rounded-[var(--radius-lg)] flex items-center justify-center"
-                style={{ background: `${stat.color}20`, color: stat.color }}
+                className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 shadow-inner"
+                style={{ background: stat.bg, color: stat.color }}
               >
-                <stat.icon size={24} />
+                <stat.icon className="text-2xl" />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-[var(--color-text-heading)]">{stat.value}</p>
-                <p className="text-xs text-[var(--color-text-muted)]">{stat.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-2xl font-black text-[#FAFAFA] tracking-tight truncate">{stat.value}</p>
+                <p className="text-xs font-extrabold text-[#71717A] mt-1 uppercase tracking-wider">{stat.label}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Recent orders */}
-      <div className="card p-5">
-        <h2 className="text-lg font-semibold text-[var(--color-text-heading)] mb-4">Today's Recent Orders</h2>
+      {/* Today's Live Orders Card */}
+      <div className="card p-7 bg-[#1A1A1D] border-[#26262A] shadow-2xl space-y-5 rounded-2xl">
+        <div className="flex items-center justify-between pb-4 border-b border-[#26262A]">
+          <h2 className="text-base font-extrabold text-[#FAFAFA] flex items-center gap-2.5">
+            <Clock24Filled className="text-[#FF5252] text-xl" />
+            <span>Today's Live Orders</span>
+          </h2>
+          <span className="text-xs font-extrabold text-[#FFB300] bg-[#FFB300]/10 px-3.5 py-1.5 rounded-full border border-[#FFB300]/20">
+            {recentOrders.length} Recent
+          </span>
+        </div>
+
         {recentOrders.length === 0 ? (
-          <p className="text-[var(--color-text-muted)] text-center py-8">No orders today yet.</p>
+          <div className="text-center py-14 text-[#71717A] space-y-2">
+            <Receipt24Filled className="text-4xl mx-auto opacity-40 text-[#FF5252]" />
+            <p className="text-sm font-extrabold text-[#FAFAFA]">No orders received today yet</p>
+            <p className="text-xs">Incoming customer orders will appear here automatically.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="data-table">
+            <table className="data-table w-full text-left border-collapse">
               <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Type</th>
-                  <th>Table/Token</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Time</th>
+                <tr className="border-b border-[#26262A] text-[11px] font-black uppercase text-[#71717A] tracking-wider bg-[#141416]">
+                  <th className="py-3.5 px-4">Order ID</th>
+                  <th className="py-3.5 px-4">Type</th>
+                  <th className="py-3.5 px-4">Table / Token</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Amount</th>
+                  <th className="py-3.5 px-4">Time</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#26262A] text-sm font-medium">
                 {recentOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                    <td className="capitalize">{order.order_type}</td>
-                    <td>
+                  <tr key={order.id} className="hover:bg-[#222226] transition-colors">
+                    <td className="py-4 px-4 font-mono text-xs font-bold text-[#FAFAFA]">
+                      #{order.id.slice(0, 8)}
+                    </td>
+                    <td className="py-4 px-4 capitalize font-semibold text-[#A1A1AA]">
+                      {order.order_type}
+                    </td>
+                    <td className="py-4 px-4 font-bold text-[#E0E0E0]">
                       {order.table_number && `Table ${order.table_number}`}
                       {order.token_number && `Token #${order.token_number}`}
                       {!order.table_number && !order.token_number && '—'}
                     </td>
-                    <td><StatusBadge status={order.status} /></td>
-                    <td className="font-semibold">₹{parseFloat(order.total_amount).toFixed(0)}</td>
-                    <td className="text-[var(--color-text-muted)]">
+                    <td className="py-4 px-4"><StatusBadge status={order.status} /></td>
+                    <td className="py-4 px-4 font-extrabold text-[#FFB300]">
+                      ₹{parseFloat(order.total_amount).toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-xs font-semibold text-[#71717A]">
                       {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                   </tr>

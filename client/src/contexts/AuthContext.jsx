@@ -1,9 +1,10 @@
 /**
  * AuthContext — Manages JWT authentication state for staff users.
+ * Supports username/password login (all staff) and Google OAuth (owners only).
  */
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { login as loginAPI, getMe } from '../api/auth';
+import { login as loginAPI, getMe, googleLogin as googleLoginAPI, signup as signupAPI } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -43,6 +44,26 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    const { data } = await googleLoginAPI(credential);
+    localStorage.setItem('access_token', data.access);
+    localStorage.setItem('refresh_token', data.refresh);
+    setUser(data.user);
+    setRole(data.role);
+    setRestaurant(data.restaurant);
+    return data;
+  }, []);
+
+  const signupRestaurant = useCallback(async (signupData) => {
+    const { data } = await signupAPI(signupData);
+    localStorage.setItem('access_token', data.access);
+    localStorage.setItem('refresh_token', data.refresh);
+    setUser(data.user);
+    setRole(data.role);
+    setRestaurant(data.restaurant);
+    return data;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -62,7 +83,7 @@ export function AuthProvider({ children }) {
       value={{
         user, role, restaurant, loading,
         isAuthenticated, isAdmin, isWaiter, isKitchen, isBiller,
-        login, logout,
+        login, loginWithGoogle, signupRestaurant, logout,
       }}
     >
       {children}

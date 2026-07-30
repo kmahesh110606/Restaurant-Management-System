@@ -8,3 +8,9 @@ export const getMe = () =>
 
 export const refreshToken = (refresh) =>
   api.post('/auth/token/refresh/', { refresh });
+
+export const googleLogin = (idToken) =>
+  api.post('/auth/google/', { id_token: idToken });
+
+export const signup = (data) =>
+  api.post('/auth/signup/', data);
