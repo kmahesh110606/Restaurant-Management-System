@@ -1,20 +1,24 @@
 /**
- * TableManagement — Rebuilt table mapping with Fluent UI icons, QR code preview, and enhanced grid spacing.
+ * TableManagement — Dining table mapping with QR code generation,
+ * capacity configuration, area assignment, and download/print features.
  */
 
 import { useEffect, useState } from 'react';
 import {
-  Table24Filled,
-  Add24Regular,
-  Edit24Regular,
-  Delete24Regular,
-  QrCode24Regular,
-  ArrowDownload24Regular,
-  Save24Regular,
+  TableSimpleRegular,
+  AddRegular,
+  EditRegular,
+  DeleteRegular,
+  QrCodeRegular,
+  ArrowDownloadRegular,
+  SaveRegular,
+  PrintRegular,
+  ArrowClockwiseRegular,
 } from '@fluentui/react-icons';
 import { getTables, createTable, updateTable, deleteTable, regenerateQR } from '../../api/tables';
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import EmptyState from '../../components/EmptyState';
 import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -32,7 +36,7 @@ export default function TableManagement() {
   const fetchData = () => {
     setLoading(true);
     getTables()
-      .then(({ data }) => setTables(data.results || data))
+      .then(({ data }) => setTables(data.results || data || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -71,13 +75,13 @@ export default function TableManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this table?')) return;
+    if (!confirm('Are you sure you want to delete this table?')) return;
     try {
       await deleteTable(id);
       toast.success('Table deleted.');
       fetchData();
-    } catch (err) {
-      toast.error('Failed to delete.');
+    } catch {
+      toast.error('Failed to delete table.');
     }
   };
 
@@ -86,7 +90,7 @@ export default function TableManagement() {
       await regenerateQR(id);
       toast.success('QR code regenerated!');
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to regenerate QR.');
     }
   };
@@ -99,74 +103,134 @@ export default function TableManagement() {
     a.click();
   };
 
-  if (loading) return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center py-24">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-fade-in space-y-8 pb-12">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#262626]">
+    <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
+      {/* ═══════════ HEADER ═══════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E53935]/10 border border-[#E53935]/20 flex items-center justify-center text-[#FF5252]">
-            <Table24Filled className="text-xl" />
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-500/20"
+            style={{ background: 'var(--color-secondary)' }}
+          >
+            <TableSimpleRegular fontSize={22} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[#FAFAFA] tracking-tight">Table Mapping</h1>
-            <p className="text-xs text-[#9E9E9E] font-medium mt-0.5">Manage dining area tables & automated QR menu codes</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Tables & QR Setup</h1>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              Manage dining floor tables, capacities, and customer self-ordering QR codes
+            </p>
           </div>
         </div>
-        <button onClick={() => openModal()} className="btn btn-primary px-5 py-2.5 rounded-xl font-extrabold flex items-center gap-2" id="add-table-btn">
-          <Add24Regular className="text-lg" />
-          <span>Add Table</span>
+
+        <button
+          onClick={() => openModal()}
+          className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
+        >
+          <AddRegular fontSize={14} /> Add New Table
         </button>
       </div>
 
+      {/* ═══════════ TABLES GRID ═══════════ */}
       {tables.length === 0 ? (
-        <div className="card p-16 text-center bg-[#1A1A1D] border-[#26262A] rounded-2xl space-y-2">
-          <Table24Filled className="text-4xl mx-auto text-[#71717A]" />
-          <p className="text-lg font-extrabold text-[#FAFAFA]">No dining tables added</p>
-          <p className="text-xs text-[#71717A]">Add tables to automatically generate printable customer QR codes.</p>
-        </div>
+        <EmptyState
+          icon={TableSimpleRegular}
+          title="No dining tables yet"
+          subtitle="Add tables to generate QR codes for customers to scan and place orders."
+          actionLabel="Create First Table"
+          onAction={() => openModal()}
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {tables.map((table) => {
-            const qrUrl = table.qr_code ? (table.qr_code.startsWith('http') ? table.qr_code : `${API_BASE}${table.qr_code}`) : null;
-            return (
-              <div key={table.id} className="card p-6 bg-[#1A1A1D] border-[#26262A] hover:border-[#3E3E45] rounded-2xl shadow-xl text-center space-y-4 flex flex-col justify-between">
-                <div>
-                  <div className="text-3xl font-black text-[#E53935] mb-1">
-                    #{table.number}
-                  </div>
-                  <p className="text-sm font-extrabold text-[#FAFAFA] mb-1">
-                    {table.name || `Table ${table.number}`}
-                  </p>
-                  <p className="text-xs font-bold text-[#71717A] mb-4">Capacity: {table.capacity} Guests</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          {tables.map((tbl) => {
+            const qrUrl = tbl.qr_code
+              ? tbl.qr_code.startsWith('http')
+                ? tbl.qr_code
+                : `${API_BASE}${tbl.qr_code}`
+              : null;
 
-                  {qrUrl && (
-                    <div
-                      className="cursor-pointer mb-4 inline-block p-2 bg-white rounded-2xl shadow-md border border-white/20 hover:scale-105 transition-transform"
-                      onClick={() => setQrModal(table)}
-                      title="Click to expand QR Code"
+            return (
+              <div
+                key={tbl.id}
+                className="solid-card bg-white border border-gray-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-base font-extrabold text-gray-900">
+                        Table {tbl.number}
+                      </h3>
+                      {tbl.name && (
+                        <p className="text-xs text-gray-500 font-medium">{tbl.name}</p>
+                      )}
+                    </div>
+                    <span
+                      className={`badge font-bold text-xs ${
+                        tbl.is_occupied ? 'badge-pending' : 'badge-ready'
+                      }`}
                     >
-                      <img src={qrUrl} alt={`QR Table ${table.number}`} className="w-32 h-32 mx-auto rounded-lg object-contain" />
+                      {tbl.is_occupied ? 'Occupied' : 'Available'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-600 font-medium">
+                    Capacity: <span className="font-bold text-gray-900">{tbl.capacity} seats</span>
+                  </p>
+
+                  {/* QR Preview thumbnail */}
+                  {qrUrl && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center">
+                      <img
+                        src={qrUrl}
+                        alt={`QR Table ${tbl.number}`}
+                        className="w-28 h-28 object-contain cursor-pointer hover:scale-105 transition-transform"
+                        onClick={() => setQrModal(tbl)}
+                      />
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-2 justify-center pt-2 border-t border-[#26262A]">
-                  {qrUrl && (
-                    <button onClick={() => downloadQR(table.qr_code, table.name || `table_${table.number}`)} className="btn btn-secondary btn-sm p-2.5 rounded-xl text-xs" title="Download QR">
-                      <ArrowDownload24Regular className="text-base" />
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                  <div className="flex gap-1.5">
+                    {qrUrl && (
+                      <button
+                        onClick={() => downloadQR(tbl.qr_code, `table_${tbl.number}`)}
+                        className="btn btn-secondary btn-sm p-1.5"
+                        title="Download QR"
+                      >
+                        <ArrowDownloadRegular fontSize={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRegenerateQR(tbl.id)}
+                      className="btn btn-secondary btn-sm p-1.5"
+                      title="Regenerate QR"
+                    >
+                      <ArrowClockwiseRegular fontSize={14} />
                     </button>
-                  )}
-                  <button onClick={() => handleRegenerateQR(table.id)} className="btn btn-secondary btn-sm p-2.5 rounded-xl text-xs" title="Regenerate QR">
-                    <QrCode24Regular className="text-base" />
-                  </button>
-                  <button onClick={() => openModal(table)} className="btn btn-secondary btn-sm p-2.5 rounded-xl text-xs" title="Edit Table">
-                    <Edit24Regular className="text-base" />
-                  </button>
-                  <button onClick={() => handleDelete(table.id)} className="btn btn-danger btn-sm p-2.5 rounded-xl text-xs" title="Delete Table">
-                    <Delete24Regular className="text-base" />
-                  </button>
+                  </div>
+
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => openModal(tbl)}
+                      className="btn btn-secondary btn-sm px-2.5 py-1 text-xs font-bold gap-1"
+                    >
+                      <EditRegular fontSize={12} /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tbl.id)}
+                      className="btn btn-danger btn-sm p-1.5"
+                    >
+                      <DeleteRegular fontSize={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -174,54 +238,116 @@ export default function TableManagement() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Table' : 'Add Table'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Table Number *</label>
-            <input type="number" value={form.number} onChange={(e) => setForm({ ...form, number: parseInt(e.target.value) })} className="input text-sm font-semibold" required min={1} />
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Label / Name</label>
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input text-sm font-semibold" placeholder='e.g. "Patio Booth #3"' />
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Seating Capacity</label>
-            <input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) })} className="input text-sm font-semibold" min={1} />
-          </div>
-          <div className="flex justify-end gap-3 pt-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-extrabold">Cancel</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary px-5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2">
-              <Save24Regular className="text-base" />
-              <span>{submitting ? 'Saving...' : 'Save Table'}</span>
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* QR Preview Modal */}
-      <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title={`QR Code — ${qrModal?.name || `Table ${qrModal?.number}`}`}>
-        {qrModal?.qr_code && (
-          <div className="text-center space-y-4">
-            <div className="p-4 bg-white rounded-2xl inline-block shadow-2xl">
-              <img
-                src={qrModal.qr_code.startsWith('http') ? qrModal.qr_code : `${API_BASE}${qrModal.qr_code}`}
-                alt="QR Code"
-                className="w-64 h-64 mx-auto object-contain"
+      {/* ═══════════ TABLE MODAL ═══════════ */}
+      {modalOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setModalOpen(false)}
+          title={editing ? `Edit Table ${editing.number}` : 'Add New Dining Table'}
+          size="sm"
+        >
+          <form onSubmit={handleSubmit} className="space-y-4 p-2">
+            <div>
+              <label className="form-label">Table Number *</label>
+              <input
+                required
+                value={form.number}
+                onChange={(e) => setForm({ ...form, number: e.target.value })}
+                placeholder="e.g. 5 or A1"
+                className="input"
               />
             </div>
-            <p className="text-xs text-[#9E9E9E] font-medium">
-              Scan this QR code to access the instant customer ordering menu for this table.
-            </p>
-            <button
-              onClick={() => downloadQR(qrModal.qr_code, qrModal.name || `table_${qrModal.number}`)}
-              className="btn btn-primary px-6 py-2.5 rounded-xl font-extrabold flex items-center justify-center gap-2 mx-auto"
-            >
-              <ArrowDownload24Regular className="text-base" /> Download Printable Code
-            </button>
+
+            <div>
+              <label className="form-label">Section / Label (Optional)</label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Patio Corner, Window 2"
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Seating Capacity *</label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 2 })}
+                className="input"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary px-4 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn btn-primary px-6 text-xs font-bold gap-1.5"
+              >
+                <SaveRegular fontSize={14} />
+                {submitting ? 'Saving...' : 'Save Table'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ═══════════ QR CODE PREVIEW & PRINT MODAL ═══════════ */}
+      {qrModal && (
+        <Modal
+          isOpen={true}
+          onClose={() => setQrModal(null)}
+          title={`Table ${qrModal.number} — QR Code`}
+          size="sm"
+        >
+          <div className="p-4 text-center space-y-4">
+            <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs inline-block">
+              <img
+                src={
+                  qrModal.qr_code?.startsWith('http')
+                    ? qrModal.qr_code
+                    : `${API_BASE}${qrModal.qr_code}`
+                }
+                alt={`Table ${qrModal.number}`}
+                className="w-48 h-48 object-contain mx-auto"
+              />
+            </div>
+
+            <div>
+              <h4 className="font-extrabold text-gray-900 text-sm">
+                Table {qrModal.number} {qrModal.name && `(${qrModal.name})`}
+              </h4>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Scan to browse menu and order directly
+              </p>
+            </div>
+
+            <div className="flex gap-2 justify-center pt-2 border-t border-gray-100">
+              <button
+                onClick={() => downloadQR(qrModal.qr_code, `table_${qrModal.number}`)}
+                className="btn btn-primary flex-1 py-2 text-xs font-bold gap-1.5"
+              >
+                <ArrowDownloadRegular fontSize={14} /> Download PNG
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="btn btn-secondary flex-1 py-2 text-xs font-bold gap-1.5"
+              >
+                <PrintRegular fontSize={14} /> Print
+              </button>
+            </div>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -33,7 +33,7 @@ const navItems = {
     { path: '/staff/waiter', icon: Food24Filled, label: 'Waiter Terminal', end: true },
   ],
   kitchen: [
-    { path: '/staff/kitchen', icon: Cookbook24Filled, label: 'Kitchen Display', end: true },
+    { path: '/staff/kitchen', icon: Food24Filled, label: 'Kitchen Display', end: true },
   ],
   biller: [
     { path: '/biller', icon: Payment24Filled, label: 'Billing Counter', end: true },

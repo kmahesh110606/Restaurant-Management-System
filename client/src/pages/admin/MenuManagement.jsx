@@ -1,15 +1,19 @@
 /**
- * MenuManagement — Rebuilt CRUD for categories and menu items with Fluent UI icons and updated spacing.
+ * MenuManagement — CRUD for categories and menu items with image uploads,
+ * pricing, tags (veg/vegan/spicy), availability toggles, and glassmorphic styling.
  */
 
 import { useEffect, useState } from 'react';
 import {
-  Food24Filled,
-  Add24Regular,
-  Edit24Regular,
-  Delete24Regular,
-  Save24Regular,
-  Image24Regular,
+  FoodRegular,
+  AddRegular,
+  EditRegular,
+  DeleteRegular,
+  SaveRegular,
+  ImageRegular,
+  DismissRegular,
+  CheckmarkRegular,
+  SparkleRegular,
 } from '@fluentui/react-icons';
 import {
   getCategories, createCategory, updateCategory, deleteCategory,
@@ -17,6 +21,7 @@ import {
 } from '../../api/menu';
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import EmptyState from '../../components/EmptyState';
 import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -25,7 +30,7 @@ export default function MenuManagement() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('items'); // items | categories
+  const [activeTab, setActiveTab] = useState('items'); // 'items' | 'categories'
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [catModalOpen, setCatModalOpen] = useState(false);
@@ -48,8 +53,8 @@ export default function MenuManagement() {
     setLoading(true);
     Promise.all([getCategories(), getMenuItems()])
       .then(([catRes, itemRes]) => {
-        setCategories(catRes.data.results || catRes.data);
-        setItems(itemRes.data.results || itemRes.data);
+        setCategories(catRes.data.results || catRes.data || []);
+        setItems(itemRes.data.results || itemRes.data || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -99,28 +104,28 @@ export default function MenuManagement() {
 
       if (editingItem) {
         await updateMenuItem(editingItem.id, formData);
-        toast.success('Item updated!');
+        toast.success('Menu item updated!');
       } else {
         await createMenuItem(formData);
-        toast.success('Item created!');
+        toast.success('Menu item created!');
       }
       setModalOpen(false);
       fetchData();
-    } catch (err) {
-      toast.error('Failed to save item.');
+    } catch {
+      toast.error('Failed to save menu item. Check required fields.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteItem = async (id) => {
-    if (!confirm('Delete this menu item?')) return;
+    if (!confirm('Are you sure you want to delete this menu item?')) return;
     try {
       await deleteMenuItem(id);
-      toast.success('Item deleted.');
+      toast.success('Menu item deleted.');
       fetchData();
-    } catch (err) {
-      toast.error('Failed to delete.');
+    } catch {
+      toast.error('Failed to delete item.');
     }
   };
 
@@ -131,7 +136,7 @@ export default function MenuManagement() {
       setCatForm({ name: cat.name, description: cat.description || '', display_order: cat.display_order, is_active: cat.is_active });
     } else {
       setEditingCat(null);
-      setCatForm({ name: '', description: '', display_order: 0, is_active: true });
+      setCatForm({ name: '', description: '', display_order: categories.length + 1, is_active: true });
     }
     setCatModalOpen(true);
   };
@@ -149,7 +154,7 @@ export default function MenuManagement() {
       }
       setCatModalOpen(false);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to save category.');
     } finally {
       setSubmitting(false);
@@ -162,142 +167,213 @@ export default function MenuManagement() {
       await deleteCategory(id);
       toast.success('Category deleted.');
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete.');
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+    return <div className="flex justify-center py-24"><LoadingSpinner size="lg" /></div>;
   }
 
   return (
-    <div className="animate-fade-in space-y-8 pb-12">
-      {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#262626]">
+    <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
+      {/* ═══════════ HEADER ═══════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E53935]/10 border border-[#E53935]/20 flex items-center justify-center text-[#FF5252]">
-            <Food24Filled className="text-xl" />
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
+            style={{ background: 'var(--color-primary)' }}
+          >
+            <FoodRegular fontSize={22} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[#FAFAFA] tracking-tight">Menu Management</h1>
-            <p className="text-xs text-[#9E9E9E] font-medium mt-0.5">Manage menu items, prices, tags, and category structure</p>
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Menu Management</h1>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              Manage dishes, pricing, tags, photography, and category structure
+            </p>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 bg-[#1A1A1D] p-1.5 rounded-2xl border border-[#26262A]">
-          <button
-            onClick={() => setActiveTab('items')}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 ${
-              activeTab === 'items' ? 'bg-[#E53935] text-white shadow-md shadow-[#E53935]/25' : 'text-[#71717A] hover:text-[#FAFAFA]'
-            }`}
-          >
-            Menu Items ({items.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 ${
-              activeTab === 'categories' ? 'bg-[#E53935] text-white shadow-md shadow-[#E53935]/25' : 'text-[#71717A] hover:text-[#FAFAFA]'
-            }`}
-          >
-            Categories ({categories.length})
-          </button>
+        {/* Tab Toggle */}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-white p-1 rounded-2xl border border-gray-200 shadow-xs">
+            <button
+              onClick={() => setActiveTab('items')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'items'
+                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Menu Items ({items.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'categories'
+                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Categories ({categories.length})
+            </button>
+          </div>
+
+          {activeTab === 'items' ? (
+            <button
+              onClick={() => openItemModal()}
+              className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
+            >
+              <AddRegular fontSize={14} /> Add Item
+            </button>
+          ) : (
+            <button
+              onClick={() => openCatModal()}
+              className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
+            >
+              <AddRegular fontSize={14} /> Add Category
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Items Tab */}
+      {/* ═══════════ ITEMS TAB ═══════════ */}
       {activeTab === 'items' && (
-        <div className="space-y-6">
-          <div className="flex justify-end">
-            <button onClick={() => openItemModal()} className="btn btn-primary px-5 py-2.5 rounded-xl font-extrabold flex items-center gap-2" id="add-menu-item-btn">
-              <Add24Regular className="text-lg" />
-              <span>Add Menu Item</span>
-            </button>
-          </div>
+        <div>
+          {items.length === 0 ? (
+            <EmptyState
+              icon={FoodRegular}
+              title="No menu items yet"
+              subtitle="Add your first dish to start serving guests."
+              actionLabel="Add Menu Item"
+              onAction={() => openItemModal()}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {items.map((item) => {
+                const imgUrl = item.image
+                  ? item.image.startsWith('http')
+                    ? item.image
+                    : `${API_BASE}${item.image}`
+                  : null;
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {items.map((item) => {
-              const imgUrl = item.image ? (item.image.startsWith('http') ? item.image : `${API_BASE}${item.image}`) : null;
-              return (
-                <div key={item.id} className="card overflow-hidden bg-[#1A1A1D] border-[#26262A] hover:border-[#3E3E45] rounded-2xl shadow-xl flex flex-col justify-between">
-                  {imgUrl && (
-                    <img src={imgUrl} alt={item.name} className="w-full h-44 object-cover border-b border-[#26262A]" />
-                  )}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div>
-                      <div className="flex items-start justify-between mb-1.5">
-                        <h3 className="font-extrabold text-base text-[#FAFAFA]">{item.name}</h3>
-                        <span className="font-black text-[#FFB300] text-base">₹{parseFloat(item.price).toFixed(0)}</span>
+                return (
+                  <div
+                    key={item.id}
+                    className="solid-card bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    {imgUrl ? (
+                      <img
+                        src={imgUrl}
+                        alt={item.name}
+                        className="w-full h-44 object-cover border-b border-gray-100"
+                      />
+                    ) : (
+                      <div className="w-full h-28 bg-gray-50 flex items-center justify-center text-gray-300 border-b border-gray-100">
+                        <FoodRegular fontSize={36} />
                       </div>
-                      <p className="text-xs font-bold text-[#71717A] uppercase tracking-wider mb-3">{item.category_name}</p>
-                      {item.description && (
-                        <p className="text-xs text-[#9E9E9E] line-clamp-2 leading-relaxed mb-3">{item.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {!item.is_available && <span className="badge badge-cancelled">Unavailable</span>}
-                        {item.is_vegetarian && <span className="badge badge-veg text-xs">Veg</span>}
-                        {item.is_vegan && <span className="badge badge-vegan text-xs">Vegan</span>}
-                      </div>
-                    </div>
+                    )}
 
-                    <div className="flex gap-2 pt-2 border-t border-[#26262A]">
-                      <button onClick={() => openItemModal(item)} className="btn btn-secondary btn-sm flex-1 py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5">
-                        <Edit24Regular className="text-base" /> Edit
-                      </button>
-                      <button onClick={() => handleDeleteItem(item.id)} className="btn btn-danger btn-sm px-3 rounded-xl">
-                        <Delete24Regular className="text-base" />
-                      </button>
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-extrabold text-base text-gray-900">{item.name}</h3>
+                          <span className="font-black text-base text-[var(--color-primary)]">
+                            ₹{parseFloat(item.price).toFixed(0)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                          {item.category_name || 'General'}
+                        </p>
+                        {item.description && (
+                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-3">
+                            {item.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {!item.is_available && (
+                            <span className="badge badge-cancelled">Sold Out</span>
+                          )}
+                          {item.is_vegetarian && (
+                            <span className="badge badge-veg">Veg</span>
+                          )}
+                          {item.is_vegan && (
+                            <span className="badge badge-vegan">Vegan</span>
+                          )}
+                          {item.spice_level > 0 && (
+                            <span className="badge bg-red-50 text-red-600">
+                              {'🌶️'.repeat(item.spice_level)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => openItemModal(item)}
+                          className="btn btn-secondary flex-1 py-1.5 text-xs font-bold gap-1.5"
+                        >
+                          <EditRegular fontSize={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="btn btn-danger px-3 py-1.5 text-xs font-bold"
+                        >
+                          <DeleteRegular fontSize={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Categories Tab */}
+      {/* ═══════════ CATEGORIES TAB ═══════════ */}
       {activeTab === 'categories' && (
-        <div className="space-y-6">
-          <div className="flex justify-end">
-            <button onClick={() => openCatModal()} className="btn btn-primary px-5 py-2.5 rounded-xl font-extrabold flex items-center gap-2" id="add-category-btn">
-              <Add24Regular className="text-lg" />
-              <span>Add Category</span>
-            </button>
-          </div>
-
-          <div className="card overflow-hidden bg-[#1A1A1D] border-[#26262A] shadow-2xl rounded-2xl">
-            <table className="data-table w-full text-left">
+        <div className="solid-card bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="data-table">
               <thead>
-                <tr className="bg-[#141416] border-b border-[#26262A] text-[11px] font-black uppercase tracking-wider text-[#71717A]">
-                  <th className="py-4 px-5">Name</th>
-                  <th className="py-4 px-5">Description</th>
-                  <th className="py-4 px-5">Display Order</th>
-                  <th className="py-4 px-5">Status</th>
-                  <th className="py-4 px-5 text-right">Actions</th>
+                <tr>
+                  <th>Category Name</th>
+                  <th>Description</th>
+                  <th>Sort Order</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#26262A] text-sm font-medium">
+              <tbody>
                 {categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-[#222226] transition-colors">
-                    <td className="py-4 px-5 font-bold text-[#FAFAFA]">{cat.name}</td>
-                    <td className="py-4 px-5 text-xs text-[#9E9E9E]">{cat.description || '—'}</td>
-                    <td className="py-4 px-5 font-mono text-xs font-bold text-[#FFB300]">{cat.display_order}</td>
-                    <td className="py-4 px-5 text-xs font-bold">
+                  <tr key={cat.id}>
+                    <td className="font-bold text-gray-900">{cat.name}</td>
+                    <td className="text-gray-500 text-xs">{cat.description || '—'}</td>
+                    <td className="font-mono text-xs font-bold text-[var(--color-primary)]">
+                      {cat.display_order}
+                    </td>
+                    <td>
                       {cat.is_active ? (
-                        <span className="text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Active</span>
+                        <span className="badge badge-ready">Active</span>
                       ) : (
-                        <span className="text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">Inactive</span>
+                        <span className="badge badge-cancelled">Inactive</span>
                       )}
                     </td>
-                    <td className="py-4 px-5 text-right">
+                    <td className="text-right">
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => openCatModal(cat)} className="btn btn-secondary btn-sm p-2 rounded-xl text-xs">
-                          <Edit24Regular className="text-base" />
+                        <button
+                          onClick={() => openCatModal(cat)}
+                          className="btn btn-secondary btn-sm p-1.5"
+                        >
+                          <EditRegular fontSize={14} />
                         </button>
-                        <button onClick={() => handleDeleteCat(cat.id)} className="btn btn-danger btn-sm p-2 rounded-xl text-xs">
-                          <Delete24Regular className="text-base" />
+                        <button
+                          onClick={() => handleDeleteCat(cat.id)}
+                          className="btn btn-danger btn-sm p-1.5"
+                        >
+                          <DeleteRegular fontSize={14} />
                         </button>
                       </div>
                     </td>
@@ -309,114 +385,226 @@ export default function MenuManagement() {
         </div>
       )}
 
-      {/* Item Modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingItem ? 'Edit Menu Item' : 'Add Menu Item'} size="lg">
-        <form onSubmit={handleItemSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Name *</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input text-sm font-semibold" required />
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Price (₹) *</label>
-              <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input text-sm font-semibold" required />
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Category *</label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="input text-sm font-semibold" required>
-                <option value="">Select category</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Spice Level</label>
-              <select value={form.spice_level} onChange={(e) => setForm({ ...form, spice_level: parseInt(e.target.value) })} className="input text-sm font-semibold">
-                <option value={0}>None</option>
-                <option value={1}>Mild</option>
-                <option value={2}>Medium</option>
-                <option value={3}>Hot</option>
-                <option value={4}>Extra Hot</option>
-              </select>
-            </div>
-          </div>
+      {/* ═══════════ ITEM MODAL ═══════════ */}
+      {modalOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setModalOpen(false)}
+          title={editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
+          size="lg"
+        >
+          <form onSubmit={handleItemSubmit} className="space-y-4 p-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="form-label">Dish Name *</label>
+                <input
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Truffle Risotto"
+                  className="input"
+                />
+              </div>
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Description</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input text-sm font-medium" rows={3} />
-          </div>
+              <div>
+                <label className="form-label">Category *</label>
+                <select
+                  required
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="input"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          {/* Image upload */}
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Image</label>
-            <div className="flex items-center gap-4">
-              {imagePreview && (
-                <img src={imagePreview} alt="Preview" className="w-20 h-20 rounded-xl object-cover border border-[#333]" />
-              )}
-              <label className="btn btn-secondary text-xs font-extrabold cursor-pointer flex items-center gap-2 py-2 px-4 rounded-xl">
-                <Image24Regular className="text-base" /> {imagePreview ? 'Change Image' : 'Upload Image'}
-                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="form-label">Price (₹) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Prep Time (Mins)</label>
+                <input
+                  type="number"
+                  value={form.preparation_time}
+                  onChange={(e) => setForm({ ...form, preparation_time: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Spice Level (0-3)</label>
+                <select
+                  value={form.spice_level}
+                  onChange={(e) => setForm({ ...form, spice_level: parseInt(e.target.value) })}
+                  className="input"
+                >
+                  <option value={0}>Mild (0)</option>
+                  <option value={1}>Medium (1)</option>
+                  <option value={2}>Hot (2)</option>
+                  <option value={3}>Extra Spicy (3)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={2}
+                placeholder="Delicious slow-cooked arborio rice with wild forest mushrooms."
+                className="input"
+              />
+            </div>
+
+            {/* Toggles */}
+            <div className="flex flex-wrap gap-4 pt-1">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={form.is_available}
+                  onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
+                  className="rounded text-[var(--color-primary)]"
+                />
+                Available for Order
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={form.is_vegetarian}
+                  onChange={(e) => setForm({ ...form, is_vegetarian: e.target.checked })}
+                  className="rounded text-emerald-600"
+                />
+                Vegetarian
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={form.is_vegan}
+                  onChange={(e) => setForm({ ...form, is_vegan: e.target.checked })}
+                  className="rounded text-teal-600"
+                />
+                Vegan
               </label>
             </div>
-          </div>
 
-          {/* Toggles */}
-          <div className="flex flex-wrap gap-6 pt-2">
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
-                className="w-4 h-4 accent-[#E53935]" />
-              <span className="text-xs font-extrabold text-[#FAFAFA]">Available</span>
-            </label>
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={form.is_vegetarian} onChange={(e) => setForm({ ...form, is_vegetarian: e.target.checked })}
-                className="w-4 h-4 accent-[#4CAF50]" />
-              <span className="text-xs font-extrabold text-[#FAFAFA]">Vegetarian</span>
-            </label>
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={form.is_vegan} onChange={(e) => setForm({ ...form, is_vegan: e.target.checked })}
-                className="w-4 h-4 accent-[#26A69A]" />
-              <span className="text-xs font-extrabold text-[#FAFAFA]">Vegan</span>
-            </label>
-          </div>
+            {/* Image upload */}
+            <div>
+              <label className="form-label">Dish Photo</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="text-xs text-gray-500 file:btn file:btn-secondary file:py-1.5 file:px-3 file:text-xs file:mr-3"
+                />
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-12 h-12 rounded-xl object-cover border border-gray-200"
+                  />
+                )}
+              </div>
+            </div>
 
-          <div className="flex justify-end gap-3 pt-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-extrabold">Cancel</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary px-5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2">
-              <Save24Regular className="text-base" />
-              <span>{submitting ? 'Saving...' : 'Save Item'}</span>
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary px-4 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn btn-primary px-6 text-xs font-bold gap-1.5"
+              >
+                <SaveRegular fontSize={14} />
+                {submitting ? 'Saving...' : 'Save Dish'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
-      {/* Category Modal */}
-      <Modal isOpen={catModalOpen} onClose={() => setCatModalOpen(false)} title={editingCat ? 'Edit Category' : 'Add Category'}>
-        <form onSubmit={handleCatSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Name *</label>
-            <input value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} className="input text-sm font-semibold" required />
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Description</label>
-            <textarea value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} className="input text-sm font-medium" rows={2} />
-          </div>
-          <div>
-            <label className="block text-xs font-extrabold uppercase text-[#71717A] mb-1.5">Display Order</label>
-            <input type="number" value={catForm.display_order} onChange={(e) => setCatForm({ ...catForm, display_order: parseInt(e.target.value) })} className="input text-sm font-semibold" />
-          </div>
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <input type="checkbox" checked={catForm.is_active} onChange={(e) => setCatForm({ ...catForm, is_active: e.target.checked })}
-              className="w-4 h-4 accent-[#E53935]" />
-            <span className="text-xs font-extrabold text-[#FAFAFA]">Active</span>
-          </label>
-          <div className="flex justify-end gap-3 pt-3">
-            <button type="button" onClick={() => setCatModalOpen(false)} className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-extrabold">Cancel</button>
-            <button type="submit" disabled={submitting} className="btn btn-primary px-5 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2">
-              <Save24Regular className="text-base" />
-              <span>{submitting ? 'Saving...' : 'Save Category'}</span>
-            </button>
-          </div>
-        </form>
-      </Modal>
+      {/* ═══════════ CATEGORY MODAL ═══════════ */}
+      {catModalOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setCatModalOpen(false)}
+          title={editingCat ? 'Edit Category' : 'Add Category'}
+          size="sm"
+        >
+          <form onSubmit={handleCatSubmit} className="space-y-4 p-2">
+            <div>
+              <label className="form-label">Category Name *</label>
+              <input
+                required
+                value={catForm.name}
+                onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
+                placeholder="e.g. Starters"
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Sort Order</label>
+              <input
+                type="number"
+                value={catForm.display_order}
+                onChange={(e) => setCatForm({ ...catForm, display_order: parseInt(e.target.value) || 0 })}
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Description</label>
+              <textarea
+                value={catForm.description}
+                onChange={(e) => setCatForm({ ...catForm, description: e.target.value })}
+                rows={2}
+                className="input"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setCatModalOpen(false)}
+                className="btn btn-secondary px-4 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn btn-primary px-6 text-xs font-bold"
+              >
+                {submitting ? 'Saving...' : 'Save Category'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

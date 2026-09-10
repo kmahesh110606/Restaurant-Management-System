@@ -1,4 +1,4 @@
-# Restaurant Management System
+# 🍽️ Restaurant Management System
 
 A full-stack, multi-tenant restaurant management platform with adaptive workflows (table-based, token-based, shop/biller), role-based access, QR menu ordering, and Docker deployment.
 
@@ -22,7 +22,7 @@ A full-stack, multi-tenant restaurant management platform with adaptive workflow
 | Database   | PostgreSQL 16                              |
 | Deployment | Docker, Docker Compose, Nginx, Gunicorn   |
 
-## Quick Start (Docker)
+## Quick Start (Docker) - Local Development
 
 ### Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
@@ -113,13 +113,13 @@ The Vite dev server proxies `/api` requests to `http://localhost:8000`.
 
 ## Workflows
 
-### Table-based
+### 🪑 Table-based
 Each table has a QR code. Customer scans → sees menu → places order mapped to their table. Multiple orders allowed until biller marks table as paid.
 
-### Token-based
+### 🎫 Token-based
 Customer orders at counter → receives auto-generated token number. Uses token at pickup. QR codes for common menu display.
 
-### Shop / Biller
+### 🏪 Shop / Biller
 Direct billing workflow. Biller enters items and generates bills.
 
 ## API Endpoints

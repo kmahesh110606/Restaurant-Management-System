@@ -6,10 +6,6 @@ export const login = (username, password) => // Export function to authenticate 
 export const getMe = () => // Export function to fetch current authenticated user profile details
   api.get('/auth/me/'); // Send GET request to fetch current active staff user payload
 
-export const refreshToken = (refresh) => // Export function to request new access token using refresh token
-  api.post('/auth/token/refresh/', { refresh }); // Send POST request with refresh token to get renewed JWT token
-
-<<<<<<< HEAD
 export const refreshToken = (refresh) =>
   api.post('/auth/token/refresh/', { refresh });
 
@@ -18,5 +14,4 @@ export const googleLogin = (idToken) =>
 
 export const signup = (data) =>
   api.post('/auth/signup/', data);
-=======
->>>>>>> b7ce8a3aaab13c0af968bde073b6b78f5ae8efd3
+

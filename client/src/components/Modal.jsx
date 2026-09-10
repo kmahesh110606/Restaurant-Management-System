@@ -1,58 +1,71 @@
 /**
- * Modal — Reusable modal dialog with backdrop.
- */  // Header docstring describing reusable modal component
+ * Modal — Glassmorphic modal dialog with backdrop blur.
+ * Supports configurable sizes, close on backdrop/escape, and Framer Motion animations.
+ */
 
-import { useEffect } from 'react';  // Import useEffect hook from React
-import { IoClose } from 'react-icons/io5';  // Import IoClose icon from react-icons/io5
+import { useEffect, useCallback } from 'react';
+import { DismissRegular } from '@fluentui/react-icons';
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {  // Export Modal component receiving isOpen, onClose, title, children, and size props
-  useEffect(() => {  // Effect hook to prevent body background scrolling when modal is open
-    if (isOpen) {  // Check if modal dialog is currently open
-      document.body.style.overflow = 'hidden';  // Disable scrolling on document body
-    } else {  // If modal is closed
-      document.body.style.overflow = '';  // Restore default body scrolling behavior
-    }  // End conditional
-    return () => {  // Cleanup function on unmount
-      document.body.style.overflow = '';  // Ensure body scroll restriction is removed on unmount
-    };  // End cleanup callback
-  }, [isOpen]);  // Re-run effect when isOpen boolean changes
+export default function Modal({ isOpen, onClose, title, children, size = 'md', showClose = true }) {
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape' && onClose) onClose();
+  }, [onClose]);
 
-  if (!isOpen) return null;  // Return null (render nothing) if modal is not open
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, handleKeyDown]);
 
-  const sizes = {  // Define CSS max-width class mapping for modal size variants
-    sm: 'max-w-md',  // Small modal width class
-    md: 'max-w-lg',  // Medium default modal width class
-    lg: 'max-w-2xl',  // Large modal width class
-    xl: 'max-w-4xl',  // Extra large modal width class
-    full: 'max-w-6xl',  // Full width modal class
-  };  // End sizes map object
+  if (!isOpen) return null;
 
-  return (  // Return modal JSX structure
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>  {/* Fixed overlay container handling backdrop click */}
+  const sizeClasses = {
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+    full: 'max-w-[90vw]',
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />  {/* Semi-transparent dark blurred backdrop element */}
+      <div
+        className="absolute inset-0 glass-overlay animate-overlay"
+        onClick={onClose}
+      />
 
       {/* Modal */}
-      <div  {/* Modal dialog content box */}
-        className={`relative ${sizes[size]} w-full card-elevated p-0 animate-slide-up max-h-[90vh] flex flex-col`}  {/* Layout, sizing, and entry animation styling */}
-        onClick={(e) => e.stopPropagation()}  {/* Prevent click inside modal box from bubbling up to backdrop click handler */}
-      >  {/* Close modal wrapper tag */}
+      <div
+        className={`relative glass-modal w-full ${sizeClasses[size]} max-h-[85vh] overflow-y-auto p-6 animate-scale-in`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        {title && (  {/* Conditionally render modal header if title is provided */}
-          <div className="flex items-center justify-between p-5 border-b border-[var(--color-border-light)]">  {/* Header container bar */}
-            <h2 className="text-lg font-semibold text-[var(--color-text-heading)]">{title}</h2>  {/* Modal header title heading */}
-            <button onClick={onClose} className="btn-icon btn-ghost">  {/* Close button triggering onClose callback */}
-              <IoClose size={20} />  {/* Render close 'X' icon */}
-            </button>  {/* Close button tag */}
-          </div>  {/* Close header container bar */}
-        )}  {/* End conditional title check */}
+        {(title || showClose) && (
+          <div className="flex items-center justify-between mb-5">
+            {title && (
+              <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+            )}
+            {showClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 transition-colors ml-auto"
+                aria-label="Close"
+              >
+                <DismissRegular fontSize={18} />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto flex-1">  {/* Scrollable modal body content wrapper */}
-          {children}  {/* Render passed child elements inside modal body */}
-        </div>  {/* Close content wrapper */}
-      </div>  {/* Close modal container element */}
-    </div>  {/* Close fixed backdrop overlay element */}
-  );  // End return statement
-}  // End Modal component
-
+        {children}
+      </div>
+    </div>
+  );
+}

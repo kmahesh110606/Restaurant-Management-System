@@ -1,18 +1,22 @@
 /**
- * KitchenDashboard — Rebuilt kitchen order terminal using Microsoft Fluent UI icons & enhanced spacing.
+ * KitchenDashboard — Real-time kitchen terminal focused on prep workflows.
+ * Glassmorphic design, Fluent UI icons, elapsed timers, status progression.
  */
 
 import { useEffect, useState, useRef } from 'react';
 import {
-  Fire24Filled,
-  CheckmarkCircle24Regular,
-  ArrowClockwise24Regular,
-  Clock24Regular,
-  Book24Filled,
+  BowlSaladRegular,
+  CheckmarkCircleRegular,
+  ArrowClockwiseRegular,
+  ClockRegular,
+  BookOpenRegular,
+  TimerRegular,
+  AlertRegular,
 } from '@fluentui/react-icons';
 import { getOrders, updateOrderStatus } from '../../api/orders';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import EmptyState from '../../components/EmptyState';
 import toast from 'react-hot-toast';
 
 export default function KitchenDashboard() {
@@ -23,7 +27,7 @@ export default function KitchenDashboard() {
   const fetchOrders = () => {
     getOrders({ today: 'true' })
       .then(({ data }) => {
-        const results = data.results || data;
+        const results = data.results || data || [];
         const active = results.filter((o) => ['pending', 'confirmed', 'preparing'].includes(o.status));
         setOrders(active);
       })
@@ -33,7 +37,7 @@ export default function KitchenDashboard() {
 
   useEffect(() => {
     fetchOrders();
-    intervalRef.current = setInterval(fetchOrders, 10000);
+    intervalRef.current = setInterval(fetchOrders, 8000);
     return () => clearInterval(intervalRef.current);
   }, []);
 
@@ -42,121 +46,154 @@ export default function KitchenDashboard() {
       await updateOrderStatus(orderId, { status: newStatus });
       toast.success(`Order marked as ${newStatus}`);
       fetchOrders();
-    } catch (err) {
+    } catch {
       toast.error('Failed to update status.');
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+    return (
+      <div className="flex justify-center py-20">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
-    <div className="animate-fade-in space-y-8 pb-12">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#262626]">
+    <div className="animate-fade-in space-y-6 pb-12 max-w-7xl mx-auto">
+      {/* ═══════════ HEADER ═══════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E53935]/10 border border-[#E53935]/20 flex items-center justify-center text-[#FF5252]">
-            <Book24Filled className="text-xl" />
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
+            style={{ background: 'var(--color-primary)' }}
+          >
+            <BowlSaladRegular fontSize={22} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[#FAFAFA] tracking-tight">Kitchen Display System</h1>
-            <p className="text-xs text-[#9E9E9E] font-medium mt-0.5">
-              {orders.length} active kitchen order{orders.length !== 1 ? 's' : ''} pending preparation
+            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Kitchen Order Tickets</h1>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              {orders.length} active ticket{orders.length !== 1 ? 's' : ''} in the preparation pipeline
             </p>
           </div>
         </div>
-        <button onClick={fetchOrders} className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2">
-          <ArrowClockwise24Regular className="text-base" /> Refresh
+
+        <button
+          onClick={fetchOrders}
+          className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2"
+        >
+          <ArrowClockwiseRegular fontSize={14} /> Refresh
         </button>
       </div>
 
       {orders.length === 0 ? (
-        <div className="card p-16 text-center bg-[#1A1A1D] border-[#26262A] rounded-2xl space-y-3">
-          <CheckmarkCircle24Regular className="text-5xl mx-auto text-[#4CAF50]" />
-          <p className="text-xl font-extrabold text-[#FAFAFA]">All caught up!</p>
-          <p className="text-xs text-[#71717A]">No active tickets waiting in the kitchen queue right now.</p>
-        </div>
+        <EmptyState
+          icon={CheckmarkCircleRegular}
+          title="All caught up!"
+          subtitle="No active tickets waiting in the kitchen queue right now."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className={`card p-6 bg-[#1A1A1D] border-[#26262A] rounded-2xl shadow-2xl space-y-4 flex flex-col justify-between ${
-                order.status === 'pending' ? 'border-[#FFB300]/60 ring-1 ring-[#FFB300]/30' : ''
-              }`}
-            >
-              {/* Header */}
-              <div>
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#26262A]">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {order.table_number && (
-                      <span className="text-xs font-black text-[#FF5252] bg-[#E53935]/15 px-3 py-1 rounded-xl border border-[#E53935]/30">
-                        Table {order.table_number}
-                      </span>
-                    )}
-                    {order.token_number && (
-                      <span className="text-xs font-black text-[#FFB300] bg-[#FFB300]/15 px-3 py-1 rounded-xl border border-[#FFB300]/30">
-                        Token #{order.token_number}
-                      </span>
-                    )}
-                    <StatusBadge status={order.status} />
-                  </div>
-                  <span className="text-xs font-semibold text-[#71717A] flex items-center gap-1">
-                    <Clock24Regular className="text-sm" />
-                    {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+          {orders.map((order) => {
+            const elapsedMinutes = Math.floor(
+              (new Date() - new Date(order.created_at)) / (1000 * 60)
+            );
 
-                {/* Items */}
-                <div className="space-y-2 mb-4 bg-[#141416] p-4 rounded-xl border border-[#222226]">
-                  {order.items?.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between text-sm">
-                      <span className="text-[#FAFAFA] font-bold">
-                        <span className="text-[#FFB300] font-black mr-2">{item.quantity}×</span>
-                        {item.menu_item_name}
-                      </span>
-                      {item.notes && (
-                        <span className="text-xs text-[#FFB300] italic font-semibold">📝 {item.notes}</span>
+            return (
+              <div
+                key={order.id}
+                className={`glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between border transition-all ${
+                  order.status === 'pending'
+                    ? 'border-amber-300 ring-2 ring-amber-100'
+                    : 'border-gray-200/80'
+                }`}
+              >
+                <div>
+                  {/* Top bar: table/token + elapsed time */}
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      {order.table_number && (
+                        <span className="text-xs font-black text-[var(--color-primary)] bg-orange-50 px-3 py-1 rounded-xl border border-orange-200">
+                          Table {order.table_number}
+                        </span>
+                      )}
+                      {order.token_number && (
+                        <span className="text-xs font-black text-amber-700 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+                          Token #{order.token_number}
+                        </span>
+                      )}
+                      {!order.table_number && !order.token_number && (
+                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-xl">
+                          Counter
+                        </span>
                       )}
                     </div>
-                  ))}
+
+                    <div className="flex items-center gap-1 text-xs font-semibold text-gray-500">
+                      <ClockRegular fontSize={12} />
+                      <span>{elapsedMinutes}m ago</span>
+                    </div>
+                  </div>
+
+                  {/* Customer Info */}
+                  <div className="flex items-center justify-between text-xs py-2 text-gray-500 font-medium">
+                    <span className="font-mono font-bold text-gray-400">#{order.id.slice(0, 8)}</span>
+                    <StatusBadge status={order.status} />
+                  </div>
+
+                  {/* Items list */}
+                  <div className="py-2 border-t border-gray-100 space-y-2">
+                    {order.items?.map((item, idx) => (
+                      <div key={idx} className="flex items-start justify-between text-sm gap-2">
+                        <span className="font-semibold text-gray-800 flex-1">
+                          <span className="font-extrabold text-[var(--color-primary)] mr-2">
+                            {item.quantity}×
+                          </span>
+                          {item.menu_item_name || item.item_name || 'Dish'}
+                        </span>
+                        {item.notes && (
+                          <span className="text-xs text-amber-600 italic bg-amber-50 px-2 py-0.5 rounded">
+                            {item.notes}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Special Notes */}
+                  {order.notes && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-100 text-xs text-amber-800 font-medium">
+                      <span className="font-bold">Instructions:</span> {order.notes}
+                    </div>
+                  )}
                 </div>
 
-                {order.notes && (
-                  <p className="text-xs font-semibold text-[#FFB300] bg-[#FFB300]/10 p-3 rounded-xl border border-[#FFB300]/20 mb-4">
-                    📝 {order.notes}
-                  </p>
-                )}
+                {/* Status action */}
+                <div className="pt-2">
+                  {order.status === 'pending' && (
+                    <button
+                      onClick={() => handleStatusChange(order.id, 'preparing')}
+                      className="w-full btn btn-primary py-2.5 text-xs font-bold gap-2"
+                    >
+                      <BowlSaladRegular fontSize={16} />
+                      Start Preparing
+                    </button>
+                  )}
+                  {order.status === 'preparing' && (
+                    <button
+                      onClick={() => handleStatusChange(order.id, 'ready')}
+                      className="w-full btn btn-success py-2.5 text-xs font-bold gap-2"
+                    >
+                      <CheckmarkCircleRegular fontSize={16} />
+                      Mark Ready for Pickup
+                    </button>
+                  )}
+                </div>
               </div>
-
-              {/* Actions */}
-              <div className="pt-2">
-                {(order.status === 'pending' || order.status === 'confirmed') && (
-                  <button
-                    onClick={() => handleStatusChange(order.id, 'preparing')}
-                    className="btn btn-primary btn-md w-full py-2.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-2"
-                  >
-                    <Fire24Filled className="text-base" /> Start Preparing
-                  </button>
-                )}
-                {order.status === 'preparing' && (
-                  <button
-                    onClick={() => handleStatusChange(order.id, 'ready')}
-                    className="btn btn-success btn-md w-full py-2.5 rounded-xl font-extrabold text-xs flex items-center justify-center gap-2"
-                  >
-                    <CheckmarkCircle24Regular className="text-base" /> Mark Order Ready
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-
-      <p className="text-center text-xs font-semibold text-[#71717A] flex items-center justify-center gap-2 pt-2">
-        <Clock24Regular className="text-sm" /> Auto-refreshing kitchen orders every 10 seconds
-      </p>
     </div>
   );
 }

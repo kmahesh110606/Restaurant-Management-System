@@ -1,241 +1,142 @@
 /**
- * LandingNavbar — Sticky top navbar for the landing page.
- * Transparent on top, glass-blur effect on scroll.
- * Contains Login (for existing staff) and Sign Up (for new restaurants).
+ * LandingNavbar — Glassmorphic top navigation for the landing page.
+ * Responsive with mobile menu, smooth blur effect, and Fluent UI icons.
  */
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IoFlame, IoMenu, IoClose } from 'react-icons/io5';
+import {
+  FoodRegular,
+  NavigationRegular,
+  DismissRegular,
+  ArrowRightRegular,
+} from '@fluentui/react-icons';
 
 export default function LandingNavbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   return (
     <nav
-      id="landing-navbar"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        padding: '0 24px',
-        height: '72px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        transition: 'all 0.3s ease',
-        background: scrolled ? 'rgba(18, 18, 18, 0.9)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
-      }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/85 backdrop-blur-xl border-b border-gray-200/60 shadow-xs py-3'
+          : 'bg-transparent py-5'
+      }`}
     >
-      {/* Brand */}
-      <Link
-        to="/"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          textDecoration: 'none',
-        }}
-      >
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg, #E53935, #FF8F00)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <IoFlame size={22} color="white" />
-        </div>
-        <span style={{
-          fontSize: '1.4rem',
-          fontWeight: 900,
-          letterSpacing: '-0.02em',
-          background: 'linear-gradient(135deg, #FF5252, #FFB300)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}>
-          DineFlow
-        </span>
-      </Link>
-
-      {/* Desktop Nav Links */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-      }}
-        className="hidden md:flex"
-      >
-        <a
-          href="#features"
-          style={{
-            color: '#9E9E9E',
-            textDecoration: 'none',
-            padding: '8px 16px',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            borderRadius: '8px',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.target.style.color = '#E0E0E0'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
-          onMouseLeave={(e) => { e.target.style.color = '#9E9E9E'; e.target.style.background = 'transparent'; }}
-        >
-          Features
-        </a>
-        <a
-          href="#demo"
-          style={{
-            color: '#9E9E9E',
-            textDecoration: 'none',
-            padding: '8px 16px',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            borderRadius: '8px',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.target.style.color = '#E0E0E0'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
-          onMouseLeave={(e) => { e.target.style.color = '#9E9E9E'; e.target.style.background = 'transparent'; }}
-        >
-          Demo
-        </a>
-        <a
-          href="#pricing"
-          style={{
-            color: '#9E9E9E',
-            textDecoration: 'none',
-            padding: '8px 16px',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            borderRadius: '8px',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.target.style.color = '#E0E0E0'; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
-          onMouseLeave={(e) => { e.target.style.color = '#9E9E9E'; e.target.style.background = 'transparent'; }}
-        >
-          Pricing
-        </a>
-
-        <div style={{ width: '1px', height: '24px', background: '#333', margin: '0 8px' }} />
-
-        <Link
-          to="/login"
-          id="nav-login-btn"
-          style={{
-            color: '#E0E0E0',
-            textDecoration: 'none',
-            padding: '8px 20px',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            borderRadius: '10px',
-            border: '1px solid #333',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => { e.target.style.borderColor = '#E53935'; e.target.style.color = '#FF5252'; }}
-          onMouseLeave={(e) => { e.target.style.borderColor = '#333'; e.target.style.color = '#E0E0E0'; }}
-        >
-          Login
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform"
+            style={{ background: 'var(--color-primary)' }}
+          >
+            <FoodRegular fontSize={22} />
+          </div>
+          <span className="text-xl font-black tracking-tight text-gray-900">
+            Savoré<span className="text-[var(--color-primary)]">RMS</span>
+          </span>
         </Link>
 
-        <Link
-          to="/signup"
-          id="nav-signup-btn"
-          style={{
-            textDecoration: 'none',
-            padding: '8px 24px',
-            fontSize: '0.9rem',
-            fontWeight: 800,
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #E53935, #C62828)',
-            color: 'white',
-            transition: 'all 0.2s',
-            boxShadow: '0 2px 12px rgba(229,57,53,0.3)',
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.background = 'linear-gradient(135deg, #FF5252, #E53935)';
-            e.target.style.transform = 'translateY(-1px)';
-            e.target.style.boxShadow = '0 4px 20px rgba(229,57,53,0.45)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'linear-gradient(135deg, #E53935, #C62828)';
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 12px rgba(229,57,53,0.3)';
-          }}
-        >
-          Sign Up Free
-        </Link>
-      </div>
-
-      {/* Mobile menu button */}
-      <button
-        className="md:hidden"
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#E0E0E0',
-          cursor: 'pointer',
-          padding: '8px',
-        }}
-        id="mobile-menu-toggle"
-      >
-        {mobileMenuOpen ? <IoClose size={28} /> : <IoMenu size={28} />}
-      </button>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden"
-          style={{
-            position: 'fixed',
-            top: '72px',
-            left: 0,
-            right: 0,
-            background: 'rgba(18,18,18,0.98)',
-            backdropFilter: 'blur(20px)',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            borderBottom: '1px solid #272727',
-            animation: 'slideDown 0.3s ease-out',
-          }}
-        >
-          <a href="#features" onClick={() => setMobileMenuOpen(false)}
-            style={{ color: '#E0E0E0', textDecoration: 'none', padding: '12px 16px', fontSize: '1rem', fontWeight: 600, borderRadius: '8px' }}>
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-8 text-xs font-bold text-gray-600">
+          <a href="#features" className="hover:text-gray-900 transition-colors">
             Features
           </a>
-          <a href="#demo" onClick={() => setMobileMenuOpen(false)}
-            style={{ color: '#E0E0E0', textDecoration: 'none', padding: '12px 16px', fontSize: '1rem', fontWeight: 600, borderRadius: '8px' }}>
-            Demo
+          <a href="#workflows" className="hover:text-gray-900 transition-colors">
+            Workflows
           </a>
-          <a href="#pricing" onClick={() => setMobileMenuOpen(false)}
-            style={{ color: '#E0E0E0', textDecoration: 'none', padding: '12px 16px', fontSize: '1rem', fontWeight: 600, borderRadius: '8px' }}>
+          <a href="#preview" className="hover:text-gray-900 transition-colors">
+            Live Preview
+          </a>
+          <a href="#pricing" className="hover:text-gray-900 transition-colors">
             Pricing
           </a>
-          <div style={{ height: '1px', background: '#272727', margin: '8px 0' }} />
-          <Link to="/login" onClick={() => setMobileMenuOpen(false)}
-            style={{ color: '#E0E0E0', textDecoration: 'none', padding: '12px 16px', fontSize: '1rem', fontWeight: 700, borderRadius: '8px', textAlign: 'center', border: '1px solid #333' }}>
-            Login
+        </div>
+
+        {/* Action CTAs */}
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/login"
+            className="btn btn-secondary text-xs font-bold px-4 py-2"
+          >
+            Staff Login
           </Link>
-          <Link to="/signup" onClick={() => setMobileMenuOpen(false)}
-            style={{ textDecoration: 'none', padding: '12px 16px', fontSize: '1rem', fontWeight: 800, borderRadius: '8px', textAlign: 'center', background: 'linear-gradient(135deg, #E53935, #C62828)', color: 'white' }}>
-            Sign Up Free
+          <Link
+            to="/signup"
+            className="btn btn-primary text-xs font-bold px-5 py-2 gap-1.5 shadow-md shadow-orange-500/20"
+          >
+            <span>Start Free</span>
+            <ArrowRightRegular fontSize={14} />
           </Link>
+        </div>
+
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100"
+          aria-label="Toggle navigation"
+        >
+          {mobileOpen ? <DismissRegular fontSize={22} /> : <NavigationRegular fontSize={22} />}
+        </button>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden glass-modal mx-4 mt-3 p-5 space-y-4 border border-gray-200 shadow-xl animate-scale-in">
+          <div className="flex flex-col space-y-3 text-sm font-bold text-gray-800">
+            <a
+              href="#features"
+              onClick={() => setMobileOpen(false)}
+              className="py-1 hover:text-[var(--color-primary)]"
+            >
+              Features
+            </a>
+            <a
+              href="#workflows"
+              onClick={() => setMobileOpen(false)}
+              className="py-1 hover:text-[var(--color-primary)]"
+            >
+              Workflows
+            </a>
+            <a
+              href="#preview"
+              onClick={() => setMobileOpen(false)}
+              className="py-1 hover:text-[var(--color-primary)]"
+            >
+              Live Preview
+            </a>
+            <a
+              href="#pricing"
+              onClick={() => setMobileOpen(false)}
+              className="py-1 hover:text-[var(--color-primary)]"
+            >
+              Pricing
+            </a>
+          </div>
+
+          <div className="pt-3 border-t border-gray-200/80 flex flex-col gap-2">
+            <Link
+              to="/login"
+              onClick={() => setMobileOpen(false)}
+              className="btn btn-secondary w-full py-2.5 text-xs font-bold"
+            >
+              Staff Login
+            </Link>
+            <Link
+              to="/signup"
+              onClick={() => setMobileOpen(false)}
+              className="btn btn-primary w-full py-2.5 text-xs font-bold"
+            >
+              Start Free Trial
+            </Link>
+          </div>
         </div>
       )}
     </nav>

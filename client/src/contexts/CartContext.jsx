@@ -1,75 +1,126 @@
 /**
- * CartContext — Manages the customer's shopping cart state.
- */  // Header docstring explaining CartContext purpose
+ * CartContext — Shopping cart state for customer ordering.
+ * Scoped per restaurant slug. Persisted to localStorage.
+ * No pre-filled demo items — starts empty.
+ */
 
-import { createContext, useContext, useState, useCallback } from 'react';  // Import React hooks and context creator
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
-const CartContext = createContext(null);  // Instantiate CartContext with default null value
+const CartContext = createContext(null);
 
-export function CartProvider({ children }) {  // Export CartProvider component to wrap app components
-  const [items, setItems] = useState([]);  // State hook storing array of cart item objects
+function getStorageKey(slug) {
+  return `rms_cart_${slug || 'default'}`;
+}
 
-  const addItem = useCallback((menuItem, quantity = 1, notes = '') => {  // Define memoized function to add items to cart
-    setItems((prev) => {  // Update items state with functional state update callback
-      const existing = prev.find((i) => i.menu_item.id === menuItem.id);  // Search for item matching menu_item ID
-      if (existing) {  // Check if item already exists in cart
-        return prev.map((i) =>  // Map through previous items to update quantity
-          i.menu_item.id === menuItem.id  // Match target item ID
-            ? { ...i, quantity: i.quantity + quantity }  // Increment quantity for matched item
-            : i  // Return unchanged item for others
-        );  // End map call
-      }  // End existing check
-      return [...prev, { menu_item: menuItem, quantity, notes }];  // Append new item object to cart array if not already present
-    });  // End setItems callback
-  }, []);  // Empty dependency array for addItem callback
+export function CartProvider({ children }) {
+  const [items, setItems] = useState([]);
+  const [restaurantSlug, setRestaurantSlug] = useState(null);
 
-  const removeItem = useCallback((menuItemId) => {  // Define memoized function to remove item from cart
-    setItems((prev) => prev.filter((i) => i.menu_item.id !== menuItemId));  // Filter out target menu item ID
-  }, []);  // Empty dependency array for removeItem callback
+  // Load cart from localStorage when slug changes
+  useEffect(() => {
+    if (restaurantSlug) {
+      try {
+        const saved = localStorage.getItem(getStorageKey(restaurantSlug));
+        if (saved) {
+          setItems(JSON.parse(saved));
+        } else {
+          setItems([]);
+        }
+      } catch {
+        setItems([]);
+      }
+    }
+  }, [restaurantSlug]);
 
-  const updateQuantity = useCallback((menuItemId, quantity) => {  // Define memoized function to update item quantity
-    if (quantity <= 0) {  // Check if target quantity is zero or negative
-      setItems((prev) => prev.filter((i) => i.menu_item.id !== menuItemId));  // Remove item if quantity falls to zero or below
-    } else {  // If quantity is positive
-      setItems((prev) =>  // Update quantity for matched menu item ID
-        prev.map((i) =>  // Map items array
-          i.menu_item.id === menuItemId ? { ...i, quantity } : i  // Set new quantity on target item
-        )  // End map call
-      );  // End setItems callback
-    }  // End quantity conditional
-  }, []);  // Empty dependency array for updateQuantity callback
+  // Persist cart whenever items change
+  useEffect(() => {
+    if (restaurantSlug) {
+      try {
+        localStorage.setItem(getStorageKey(restaurantSlug), JSON.stringify(items));
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }, [items, restaurantSlug]);
 
-  const updateItemNotes = useCallback((menuItemId, notes) => {  // Define memoized function to update special instructions for cart item
-    setItems((prev) =>  // Update items state
-      prev.map((i) =>  // Map through items array
-        i.menu_item.id === menuItemId ? { ...i, notes } : i  // Update notes field for matched item ID
-      )  // End map call
-    );  // End setItems callback
-  }, []);  // Empty dependency array for updateItemNotes callback
+  const addItem = useCallback((menuItem, quantity = 1, notes = '') => {
+    setItems((prev) => {
+      const existing = prev.find((i) => i.id === menuItem.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.id === menuItem.id
+            ? { ...i, quantity: i.quantity + quantity }
+            : i
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: menuItem.id,
+          name: menuItem.name,
+          price: parseFloat(menuItem.price),
+          image: menuItem.image,
+          quantity,
+          notes,
+          is_vegetarian: menuItem.is_vegetarian,
+          is_vegan: menuItem.is_vegan,
+        },
+      ];
+    });
+  }, []);
 
-  const clearCart = useCallback(() => setItems([]), []);  // Define memoized function to reset cart to empty array
+  const updateQuantity = useCallback((itemId, quantity) => {
+    if (quantity <= 0) {
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
+    } else {
+      setItems((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, quantity } : i))
+      );
+    }
+  }, []);
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);  // Calculate total count of all item quantities in cart
-  const totalAmount = items.reduce(  // Calculate total price of all items in cart
-    (sum, i) => sum + i.menu_item.price * i.quantity,  // Multiply item price by quantity and add to total sum
-    0  // Initial accumulator value
-  );  // End totalAmount calculation reduce
+  const updateItemNotes = useCallback((itemId, notes) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, notes } : i))
+    );
+  }, []);
 
-  return (  // Return context provider wrapping children
-    <CartContext.Provider  {/* Mount CartContext provider */}
-      value={{  /* Provide value object to context consumers */
-        items, totalItems, totalAmount,  // Expose items array, total item count, and total amount sum
-        addItem, removeItem, updateQuantity, updateItemNotes, clearCart,  // Expose cart manipulator functions
-      }}  /* End context value prop */
-    >  {/* Provider tag */}
-      {children}  {/* Render child components inside provider */}
-    </CartContext.Provider>  {/* Close CartContext provider */}
-  );  // End return statement
-}  // End CartProvider component
+  const removeItem = useCallback((itemId) => {
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
+  }, []);
 
-export function useCart() {  // Export custom hook to consume CartContext
-  const context = useContext(CartContext);  // Retrieve current CartContext value
-  if (!context) throw new Error('useCart must be used within a CartProvider');  // Guard against usage outside CartProvider
-  return context;  // Return context value object
-}  // End useCart function
+  const clearCart = useCallback(() => {
+    setItems([]);
+    if (restaurantSlug) {
+      localStorage.removeItem(getStorageKey(restaurantSlug));
+    }
+  }, [restaurantSlug]);
 
+  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  return (
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        updateQuantity,
+        updateItemNotes,
+        removeItem,
+        clearCart,
+        totalItems,
+        totalAmount,
+        restaurantSlug,
+        setRestaurantSlug,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (!context) throw new Error('useCart must be used within a CartProvider');
+  return context;
+}

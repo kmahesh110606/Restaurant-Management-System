@@ -1,165 +1,222 @@
 /**
- * MenuPage — Customer-facing menu page accessed via QR code.
- * URL: /:slug/menu?table=N  or  /:slug/menu
+ * MenuPage — Customer-facing menu with workflow-adaptive behavior.
+ * Fetches categories and menu items from API based on restaurant slug.
+ * Adapts UI based on workflow_type: table (self-order), token (counter), shop (biller), view-only.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { IoSearch, IoCart, IoFilter } from 'react-icons/io5';
+import {
+  SearchRegular,
+  DismissRegular,
+  CartRegular,
+  InfoRegular,
+} from '@fluentui/react-icons';
 import { getCategoriesNested } from '../../api/menu';
 import { useCart } from '../../contexts/CartContext';
 import MenuCard from '../../components/MenuCard';
 import CartDrawer from '../../components/CartDrawer';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import EmptyState from '../../components/EmptyState';
 
 export default function MenuPage() {
-  const { restaurant } = useOutletContext();
+  const { restaurantConfig, slug } = useOutletContext() || {};
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { totalItems, totalAmount } = useCart();
 
   const tableNumber = searchParams.get('table');
-  const tokenNumber = searchParams.get('token');
 
   const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [filterVeg, setFilterVeg] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [error, setError] = useState(null);
 
+  const currency = restaurantConfig?.currency || '₹';
+  const workflowType = restaurantConfig?.workflow_type || 'table';
+
+  // Determine if self-ordering is allowed
+  const allowSelfOrdering = workflowType === 'table' || workflowType === 'token';
+  const isViewOnly = !allowSelfOrdering;
+
+  // Fetch menu data
   useEffect(() => {
-    getCategoriesNested(restaurant.slug)
+    if (!slug) return;
+    setLoading(true);
+    setError(null);
+
+    getCategoriesNested(slug)
       .then(({ data }) => {
         const cats = data.results || data;
-        setCategories(cats);
-        if (cats.length > 0) setActiveCategory(cats[0].id);
+        if (Array.isArray(cats)) {
+          setCategories(cats);
+          const allItems = cats.flatMap((c) => (c.items || []).map((item) => ({
+            ...item,
+            category_slug: c.name?.toLowerCase(),
+            category_name: c.name,
+          })));
+          setMenuItems(allItems);
+        }
       })
-      .catch(console.error)
+      .catch(() => {
+        setError('Unable to load menu. Please try again.');
+      })
       .finally(() => setLoading(false));
-  }, [restaurant.slug]);
-
-  const handleCheckout = () => {
-    setCartOpen(false);
-    const params = new URLSearchParams();
-    if (tableNumber) params.set('table', tableNumber);
-    if (tokenNumber) params.set('token', tokenNumber);
-    navigate(`/${restaurant.slug}/cart?${params.toString()}`);
-  };
+  }, [slug]);
 
   // Filter items
-  const filteredCategories = categories.map((cat) => ({
-    ...cat,
-    items: (cat.items || []).filter((item) => {
-      const matchesSearch =
-        !search ||
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.description?.toLowerCase().includes(search.toLowerCase());
-      const matchesVeg = !filterVeg || item.is_vegetarian;
-      return matchesSearch && matchesVeg;
-    }),
-  })).filter((cat) => cat.items.length > 0);
+  const filteredItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      const matchesSearch = !searchQuery ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-  if (loading) {
+      const matchesCategory = activeCategory === 'all' ||
+        item.category_slug?.includes(activeCategory.toLowerCase()) ||
+        item.category_name?.toLowerCase() === activeCategory.toLowerCase();
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [menuItems, activeCategory, searchQuery]);
+
+  if (loading) return <LoadingSpinner />;
+
+  if (error) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <LoadingSpinner size="lg" />
-      </div>
+      <EmptyState
+        title="Couldn't load menu"
+        subtitle={error}
+        actionLabel="Retry"
+        onAction={() => window.location.reload()}
+      />
     );
   }
 
   return (
-    <div className="pb-24">
-      {/* Table/Token indicator */}
-      {(tableNumber || tokenNumber) && (
-        <div className="mb-4 p-3 rounded-[var(--radius-lg)] glass text-center animate-fade-in">
-          <span className="text-sm text-[var(--color-text-secondary)]">
-            {tableNumber ? `📍 Table ${tableNumber}` : `🎫 Token ${tokenNumber}`}
-          </span>
+    <div className="relative pb-24 animate-fade-in max-w-6xl mx-auto">
+      {/* ═══════════ HEADER ═══════════ */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            {restaurantConfig?.name || 'Our Menu'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {tableNumber
+              ? `Ordering for Table ${tableNumber}`
+              : restaurantConfig?.description || 'Browse our curated dishes and place your order'}
+          </p>
+          {isViewOnly && (
+            <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold">
+              <InfoRegular fontSize={14} />
+              <span>This is a view-only menu. Please ask your waiter to place an order.</span>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Search & Filters */}
-      <div className="flex gap-2 mb-4 animate-fade-in">
-        <div className="relative flex-1">
-          <IoSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
+        {/* Search */}
+        <div className="relative w-full sm:w-72 shrink-0">
+          <SearchRegular className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" fontSize={16} />
           <input
             type="text"
             placeholder="Search dishes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10"
-            id="menu-search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input pl-10 pr-9 py-2.5 rounded-full text-sm"
+            id="dish-search-input"
           />
-        </div>
-        <button
-          onClick={() => setFilterVeg(!filterVeg)}
-          className={`btn ${filterVeg ? 'btn-success' : 'btn-secondary'} btn-sm`}
-          id="veg-filter-btn"
-        >
-          <IoFilter size={16} /> Veg
-        </button>
-      </div>
-
-      {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none animate-fade-in">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => {
-              setActiveCategory(cat.id);
-              document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            className={`btn btn-sm whitespace-nowrap transition-all ${
-              activeCategory === cat.id ? 'btn-primary' : 'btn-secondary'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Menu items by category */}
-      {filteredCategories.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-[var(--color-text-secondary)]">No items found</p>
-        </div>
-      ) : (
-        filteredCategories.map((cat) => (
-          <div key={cat.id} id={`cat-${cat.id}`} className="mb-8">
-            <h2 className="text-xl font-bold text-[var(--color-text-heading)] mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 rounded-full bg-[var(--color-primary)]" />
-              {cat.name}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {cat.items.map((item) => (
-                <MenuCard key={item.id} item={item} />
-              ))}
-            </div>
-          </div>
-        ))
-      )}
-
-      {/* Floating cart button */}
-      {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 z-30">
-          <div className="max-w-4xl mx-auto">
+          {searchQuery && (
             <button
-              onClick={() => setCartOpen(true)}
-              className="btn btn-accent btn-lg w-full shadow-xl"
-              id="view-cart-btn"
-              style={{ boxShadow: '0 -4px 20px rgb(245 158 11 / 0.3)' }}
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              <IoCart size={20} />
-              <span>{totalItems} item{totalItems > 1 ? 's' : ''}</span>
-              <span className="ml-auto font-bold">₹{totalAmount.toFixed(0)}</span>
+              <DismissRegular fontSize={14} />
             </button>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════ CATEGORY TABS ═══════════ */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
+        <button
+          onClick={() => setActiveCategory('all')}
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 whitespace-nowrap ${
+            activeCategory === 'all'
+              ? 'bg-[var(--color-primary)] text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100/60'
+          }`}
+        >
+          All
+        </button>
+        {categories.map((cat) => {
+          const slug = cat.name?.toLowerCase();
+          const isActive = activeCategory === slug;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(slug)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-150 whitespace-nowrap ${
+                isActive
+                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100/60'
+              }`}
+            >
+              {cat.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ═══════════ MENU GRID ═══════════ */}
+      {filteredItems.length === 0 ? (
+        <EmptyState
+          title="No dishes found"
+          subtitle="Try a different category or search term."
+          actionLabel="Reset Filters"
+          onAction={() => { setActiveCategory('all'); setSearchQuery(''); }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredItems.map((item, index) => (
+            <div key={item.id} style={{ animationDelay: `${index * 0.04}s` }}>
+              <MenuCard
+                item={item}
+                currency={currency}
+                readOnly={isViewOnly}
+              />
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Cart drawer */}
-      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} onCheckout={handleCheckout} />
+      {/* ═══════════ FLOATING CART FAB ═══════════ */}
+      {allowSelfOrdering && totalItems > 0 && (
+        <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-30 animate-slide-up">
+          <button
+            onClick={() => setCartDrawerOpen(true)}
+            className="group flex items-center gap-3 px-5 py-3.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold text-sm rounded-full shadow-xl transition-all duration-200 active:scale-95"
+            id="floating-cart-btn"
+          >
+            <CartRegular fontSize={18} className="transition-transform group-hover:scale-110" />
+            <span>{totalItems} {totalItems === 1 ? 'Item' : 'Items'}</span>
+            <span className="text-xs opacity-80">•</span>
+            <span>{currency}{totalAmount.toFixed(2)}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+        onCheckout={() => {
+          setCartDrawerOpen(false);
+          navigate(`/${slug}/cart${tableNumber ? `?table=${tableNumber}` : ''}`);
+        }}
+        currency={currency}
+      />
     </div>
   );
 }

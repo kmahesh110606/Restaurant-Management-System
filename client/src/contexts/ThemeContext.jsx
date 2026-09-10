@@ -1,54 +1,152 @@
 /**
  * ThemeContext — Applies dynamic restaurant theming via CSS custom properties.
- */  // Header docstring explaining dynamic CSS custom property theming
+ * Fetches restaurant public config from API and applies branding (colors, fonts).
+ * Falls back to sensible defaults if restaurant has no custom branding.
+ */
 
-import { createContext, useContext, useEffect, useState } from 'react';  // Import React hooks and context creator
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import api from '../api/client';
 
-const ThemeContext = createContext(null);  // Instantiate ThemeContext with default null value
+const DEFAULT_THEME = {
+  primary_color: '#EA580C',
+  secondary_color: '#10B981',
+  accent_color: '#EA580C',
+  font_family: 'Plus Jakarta Sans',
+  name: 'Restaurant',
+  currency: '₹',
+};
 
-export function ThemeProvider({ children, restaurantConfig }) {  // Export ThemeProvider component receiving children and restaurantConfig props
-  const [theme, setTheme] = useState(restaurantConfig || null);  // State hook for storing active restaurant design tokens
+const ThemeContext = createContext(null);
 
-  useEffect(() => {  // Lifecycle effect hook to update internal theme state when restaurantConfig prop updates
-    if (restaurantConfig) {  // Check if restaurantConfig object was provided
-      setTheme(restaurantConfig);  // Update theme state with new config
-    }  // End conditional check
-  }, [restaurantConfig]);  // Re-run effect when restaurantConfig reference changes
+/**
+ * Lighten a hex color by a percentage (0-1).
+ */
+function lightenColor(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, (num >> 16) + Math.round((255 - (num >> 16)) * percent));
+  const g = Math.min(255, ((num >> 8) & 0x00FF) + Math.round((255 - ((num >> 8) & 0x00FF)) * percent));
+  const b = Math.min(255, (num & 0x0000FF) + Math.round((255 - (num & 0x0000FF)) * percent));
+  return `#${(0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
 
-  // Apply CSS custom properties whenever theme changes
-  useEffect(() => {  // Lifecycle effect hook to sync theme values to CSS custom properties on document root
-    if (!theme) return;  // Return early if no theme configuration is set
+function darkenColor(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, Math.round((num >> 16) * (1 - percent)));
+  const g = Math.max(0, Math.round(((num >> 8) & 0x00FF) * (1 - percent)));
+  const b = Math.max(0, Math.round((num & 0x0000FF) * (1 - percent)));
+  return `#${(0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
 
-    const root = document.documentElement;  // Get reference to <html> document root element
-    if (theme.primary_color) root.style.setProperty('--color-primary', theme.primary_color);  // Update --color-primary CSS variable if set
-    if (theme.secondary_color) root.style.setProperty('--color-secondary', theme.secondary_color);  // Update --color-secondary CSS variable if set
-    if (theme.accent_color) root.style.setProperty('--color-accent', theme.accent_color);  // Update --color-accent CSS variable if set
-    if (theme.font_family) {  // Check if custom font family is specified
-      root.style.setProperty('--font-family', `'${theme.font_family}', system-ui, sans-serif`);  // Set --font-family CSS variable
-      // Dynamically load the Google Font if it's not Inter
-      if (theme.font_family !== 'Inter') {  // Check if font is non-default Google Font
-        const link = document.createElement('link');  // Create new HTML <link> element
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(theme.font_family)}:wght@300;400;500;600;700&display=swap`;  // Set font stylesheet URL
-        link.rel = 'stylesheet';  // Set link relationship attribute to stylesheet
-        document.head.appendChild(link);  // Append font stylesheet to document <head>
-      }  // End non-Inter font check
-    }  // End font family check
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState(DEFAULT_THEME);
+  const [restaurantConfig, setRestaurantConfig] = useState(null);
+  const [themeLoading, setThemeLoading] = useState(false);
 
-    return () => {  // Cleanup callback executed on unmount or theme change
-      // Cleanup: reset to defaults (optional)
-    };  // End cleanup callback
-  }, [theme]);  // Re-run effect whenever theme object updates
+  /**
+   * Fetch restaurant public config by slug and apply theming.
+   */
+  const loadRestaurantTheme = useCallback(async (slug) => {
+    if (!slug) return;
+    setThemeLoading(true);
+    try {
+      const { data } = await api.get(`/restaurants/${slug}/public/`);
+      setRestaurantConfig(data);
+      setTheme((prev) => ({
+        ...prev,
+        ...data,
+        primary_color: data.primary_color || DEFAULT_THEME.primary_color,
+        secondary_color: data.secondary_color || DEFAULT_THEME.secondary_color,
+        accent_color: data.accent_color || DEFAULT_THEME.accent_color,
+        font_family: data.font_family || DEFAULT_THEME.font_family,
+        currency: data.currency || DEFAULT_THEME.currency,
+      }));
+    } catch {
+      // Keep defaults if restaurant not found
+    } finally {
+      setThemeLoading(false);
+    }
+  }, []);
 
-  return (  // Return context provider wrapping children
-    <ThemeContext.Provider value={{ theme, setTheme }}>  {/* Mount ThemeContext provider with state and setter */}
-      {children}  {/* Render child components */}
-    </ThemeContext.Provider>  {/* Close ThemeContext provider */}
-  );  // End return statement
-}  // End ThemeProvider component
+  /**
+   * Apply CSS custom properties whenever theme changes.
+   */
+  useEffect(() => {
+    if (!theme) return;
 
-export function useTheme() {  // Export custom hook to consume ThemeContext
-  const context = useContext(ThemeContext);  // Retrieve current ThemeContext value
-  if (!context) throw new Error('useTheme must be used within a ThemeProvider');  // Guard against usage outside ThemeProvider
-  return context;  // Return context value object
-}  // End useTheme function
+    const root = document.documentElement;
+    const primary = theme.primary_color || DEFAULT_THEME.primary_color;
+    const secondary = theme.secondary_color || DEFAULT_THEME.secondary_color;
+    const accent = theme.accent_color || primary;
+    const fontFamily = theme.font_family || DEFAULT_THEME.font_family;
 
+    // Derive light/dark shades from primary
+    const primaryLight = lightenColor(primary, 0.2);
+    const primaryDark = darkenColor(primary, 0.15);
+    const primary50 = lightenColor(primary, 0.92);
+    const primary100 = lightenColor(primary, 0.85);
+
+    root.style.setProperty('--color-primary', primary);
+    root.style.setProperty('--color-primary-light', primaryLight);
+    root.style.setProperty('--color-primary-dark', primaryDark);
+    root.style.setProperty('--color-primary-50', primary50);
+    root.style.setProperty('--color-primary-100', primary100);
+    root.style.setProperty('--color-secondary', secondary);
+    root.style.setProperty('--color-secondary-light', lightenColor(secondary, 0.2));
+    root.style.setProperty('--color-secondary-dark', darkenColor(secondary, 0.15));
+    root.style.setProperty('--color-accent', accent);
+    root.style.setProperty('--color-accent-light', lightenColor(accent, 0.2));
+    root.style.setProperty('--color-accent-dark', darkenColor(accent, 0.15));
+
+    // Shadow glows based on primary
+    root.style.setProperty('--shadow-glow', `0 0 20px -4px ${primary}50`);
+    root.style.setProperty('--shadow-glow-sm', `0 0 12px -2px ${primary}33`);
+
+    // Font family
+    root.style.setProperty('--font-family', `'${fontFamily}', system-ui, -apple-system, sans-serif`);
+
+    // Load Google Font if non-default
+    if (fontFamily && fontFamily !== 'Plus Jakarta Sans') {
+      const existingLink = document.querySelector(`link[data-font="${fontFamily}"]`);
+      if (!existingLink) {
+        const link = document.createElement('link');
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800&display=swap`;
+        link.rel = 'stylesheet';
+        link.setAttribute('data-font', fontFamily);
+        document.head.appendChild(link);
+      }
+    }
+  }, [theme]);
+
+  const updateTheme = useCallback((patch) => {
+    setTheme((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const resetTheme = useCallback(() => {
+    setTheme(DEFAULT_THEME);
+    setRestaurantConfig(null);
+  }, []);
+
+  return (
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme,
+        updateTheme,
+        resetTheme,
+        restaurantConfig,
+        setRestaurantConfig,
+        loadRestaurantTheme,
+        themeLoading,
+        defaultTheme: DEFAULT_THEME,
+      }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within a ThemeProvider');
+  return context;
+}
