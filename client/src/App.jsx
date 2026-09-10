@@ -1,5 +1,5 @@
 /**
- * App.jsx — Complete application routing for Savoré Restaurant Management System.
+ * App.jsx — Complete application routing for Restaurant Management System (RMS).
  * Production-ready route tree across Marketing, Auth, Customer QR Portal, and Staff Workspace.
  */
 

@@ -54,80 +54,90 @@ export default function CustomerLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-warm flex flex-col">
+    <div className="min-h-screen bg-gradient-warm bg-mesh-canvas flex flex-col relative selection:bg-orange-500 selection:text-white">
       {/* ═══════════ CUSTOMER HEADER ═══════════ */}
-      <header className="glass-header h-14 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40">
-        <NavLink to={`/${slug}/menu`} className="flex items-center gap-2.5">
+      <header className="glass-header h-16 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40">
+        <NavLink to={`/${slug}/menu`} className="flex items-center gap-2.5 group">
           {restaurantConfig?.logo ? (
             <img
               src={restaurantConfig.logo}
               alt={restaurantName}
-              className="w-8 h-8 rounded-xl object-cover"
+              className="w-9 h-9 rounded-xl object-cover shadow-sm"
             />
           ) : (
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-white"
-              style={{ background: 'var(--color-primary)' }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform"
+              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
             >
-              <FoodRegular fontSize={14} />
+              <FoodRegular fontSize={18} />
             </div>
           )}
-          <span className="text-sm font-extrabold text-gray-900 tracking-tight">
-            {restaurantName}
-          </span>
+          <div>
+            <span className="text-sm font-extrabold text-slate-900 tracking-tight block">
+              {restaurantName}
+            </span>
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">
+              Digital QR Menu
+            </span>
+          </div>
         </NavLink>
 
         {/* Cart badge (desktop) */}
         <NavLink
           to={`/${slug}/cart`}
-          className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--color-primary-50)] text-[var(--color-primary)] text-xs font-bold hover:bg-[var(--color-primary-100)] transition-colors"
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-bold text-slate-800 hover:bg-white transition-all shadow-xs"
         >
-          <CartRegular fontSize={14} />
+          <CartRegular fontSize={16} className="text-orange-600" />
           <span>{totalItems} Items</span>
+          {totalItems > 0 && (
+            <span className="w-5 h-5 rounded-full bg-orange-600 text-white text-[10px] font-black flex items-center justify-center">
+              {totalItems}
+            </span>
+          )}
         </NavLink>
       </header>
 
       {/* ═══════════ CONTENT ═══════════ */}
-      <main className="flex-1 p-4 sm:p-6 pb-24 sm:pb-6 max-w-5xl mx-auto w-full">
+      <main className="flex-1 p-4 sm:p-6 pb-24 sm:pb-8 max-w-5xl mx-auto w-full relative z-10">
         <Outlet context={{ restaurantConfig, slug }} />
       </main>
 
-      {/* ═══════════ MOBILE BOTTOM NAV ═══════════ */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 glass-header border-t border-gray-200/40 z-40">
-        <div className="flex items-center justify-around py-2">
+      {/* ═══════════ MOBILE BOTTOM NAV (Floating Frosted Capsule) ═══════════ */}
+      <nav className="sm:hidden fixed bottom-3 inset-x-4 glass-card bg-white/85 py-2 px-6 border border-white/80 z-40 shadow-2xl rounded-full">
+        <div className="flex items-center justify-around">
           <NavLink
             to={`/${slug}/menu`}
             className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors ${
-              isMenuActive ? 'text-[var(--color-primary)]' : 'text-gray-400'
+              isMenuActive ? 'text-orange-600 font-bold' : 'text-slate-400 font-semibold'
             }`}
           >
             <HomeRegular fontSize={20} />
-            <span className="text-[10px] font-bold">Menu</span>
+            <span className="text-[10px]">Menu</span>
           </NavLink>
 
           <NavLink
             to={`/${slug}/cart`}
             className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors relative ${
-              isCartActive ? 'text-[var(--color-primary)]' : 'text-gray-400'
+              isCartActive ? 'text-orange-600 font-bold' : 'text-slate-400 font-semibold'
             }`}
           >
             <CartRegular fontSize={20} />
-            <span className="text-[10px] font-bold">Cart</span>
+            <span className="text-[10px]">Cart</span>
             {totalItems > 0 && (
-              <span className="absolute -top-0.5 right-1 w-4 h-4 bg-[var(--color-primary)] text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pop">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pop">
                 {totalItems}
               </span>
             )}
           </NavLink>
 
           <NavLink
-            to={`/${slug}/orders`}
+            to={`/${slug}/order`}
             className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors ${
-              isOrderActive ? 'text-[var(--color-primary)]' : 'text-gray-400'
+              isOrderActive ? 'text-orange-600 font-bold' : 'text-slate-400 font-semibold'
             }`}
           >
             <ClipboardTaskRegular fontSize={20} />
-            <span className="text-[10px] font-bold">Orders</span>
+            <span className="text-[10px]">Track</span>
           </NavLink>
         </div>
       </nav>

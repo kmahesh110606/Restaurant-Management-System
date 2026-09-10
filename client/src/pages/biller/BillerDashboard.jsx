@@ -400,7 +400,7 @@ export default function BillerDashboard() {
           <div className="space-y-5 p-2 print-area">
             {/* Restaurant header */}
             <div className="text-center pb-3 border-b border-gray-200">
-              <h3 className="text-lg font-black text-gray-900">{restaurant?.name || 'Savoré Bistro'}</h3>
+              <h3 className="text-lg font-black text-gray-900">{restaurant?.name || 'Grand Bistro'}</h3>
               <p className="text-xs text-gray-500 mt-0.5">{restaurant?.address || 'Tax Invoice'}</p>
             </div>
 

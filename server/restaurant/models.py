@@ -353,8 +353,10 @@ class Bill(models.Model):
 
     def recalculate(self):
         """Recalculate bill totals from linked orders."""
+        from decimal import Decimal as D
         self.subtotal = sum(order.total_amount for order in self.orders.all())
-        self.tax_amount = self.subtotal * (self.restaurant.tax_rate / 100)
+        tax_rate = D(str(self.restaurant.tax_rate))
+        self.tax_amount = self.subtotal * (tax_rate / D('100'))
         self.final_amount = self.subtotal + self.tax_amount - self.discount_amount
         self.save(update_fields=['subtotal', 'tax_amount', 'final_amount'])
 
