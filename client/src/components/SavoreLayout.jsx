@@ -1,4 +1,4 @@
 /**
- * SavoreLayout — Re-exports WorkspaceLayout for backwards compatibility.
+ * Re-exports WorkspaceLayout for backwards compatibility.
  */
 export { default } from './WorkspaceLayout';

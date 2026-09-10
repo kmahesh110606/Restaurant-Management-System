@@ -114,27 +114,33 @@ export default function TableManagement() {
   return (
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
+      <div className="glass-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-white/80">
+        <div className="flex items-center gap-4">
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-500/20"
-            style={{ background: 'var(--color-secondary)' }}
+            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
           >
-            <TableSimpleRegular fontSize={22} />
+            <TableSimpleRegular fontSize={26} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Tables & QR Setup</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Manage dining floor tables, capacities, and customer self-ordering QR codes
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Tables & QR Setup</h1>
+              <span className="badge badge-ready font-bold text-xs py-1 px-3">
+                {tables.length} Active Tables
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              Configure floor seating, capacities, and customer self-ordering QR codes
             </p>
           </div>
         </div>
 
         <button
           onClick={() => openModal()}
-          className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
+          className="btn btn-primary px-5 py-2.5 text-xs font-bold gap-2 shadow-md shadow-orange-500/20 self-start sm:self-center"
         >
-          <AddRegular fontSize={14} /> Add New Table
+          <AddRegular fontSize={16} />
+          <span>Add New Table</span>
         </button>
       </div>
 
@@ -159,20 +165,20 @@ export default function TableManagement() {
             return (
               <div
                 key={tbl.id}
-                className="solid-card bg-white border border-gray-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="glass-card p-6 border border-white/90 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between space-y-4"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <h3 className="text-base font-extrabold text-gray-900">
+                      <h3 className="text-base font-extrabold text-slate-900">
                         Table {tbl.number}
                       </h3>
                       {tbl.name && (
-                        <p className="text-xs text-gray-500 font-medium">{tbl.name}</p>
+                        <p className="text-xs text-slate-500 font-medium">{tbl.name}</p>
                       )}
                     </div>
                     <span
-                      className={`badge font-bold text-xs ${
+                      className={`badge font-bold text-xs py-0.5 px-2.5 ${
                         tbl.is_occupied ? 'badge-pending' : 'badge-ready'
                       }`}
                     >
@@ -180,17 +186,17 @@ export default function TableManagement() {
                     </span>
                   </div>
 
-                  <p className="text-xs text-gray-600 font-medium">
-                    Capacity: <span className="font-bold text-gray-900">{tbl.capacity} seats</span>
+                  <p className="text-xs text-slate-600 font-medium">
+                    Seating: <span className="font-bold text-slate-900">{tbl.capacity} guests</span>
                   </p>
 
                   {/* QR Preview thumbnail */}
                   {qrUrl && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center">
+                    <div className="mt-4 p-4 rounded-2xl bg-white/70 border border-white/80 shadow-xs flex items-center justify-center">
                       <img
                         src={qrUrl}
                         alt={`QR Table ${tbl.number}`}
-                        className="w-28 h-28 object-contain cursor-pointer hover:scale-105 transition-transform"
+                        className="w-28 h-28 object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
                         onClick={() => setQrModal(tbl)}
                       />
                     </div>

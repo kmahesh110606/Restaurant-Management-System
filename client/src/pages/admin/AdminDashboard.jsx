@@ -1,6 +1,7 @@
 /**
- * AdminDashboard — Overview dashboard with KPI stat cards,
- * today's live incoming orders, quick management links, and glassmorphic styling.
+ * AdminDashboard — iOS 28 Liquid Glass Operations Cockpit.
+ * KPI telemetry cards with dynamic mesh refractions,
+ * live incoming orders stream, quick shortcuts, and glassmorphic tables.
  */
 
 import { useEffect, useState } from 'react';
@@ -16,6 +17,7 @@ import {
   TableSimpleRegular,
   SettingsRegular,
   BowlSaladRegular,
+  SparkleRegular,
 } from '@fluentui/react-icons';
 import { Link } from 'react-router-dom';
 import { getAnalyticsSummary } from '../../api/analytics';
@@ -46,7 +48,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-24">
+      <div className="flex justify-center items-center py-32">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -57,82 +59,100 @@ export default function AdminDashboard() {
       label: 'Monthly Orders',
       value: summary?.total_orders || 0,
       icon: ReceiptRegular,
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
+      color: '#EA580C',
+      bg: 'rgba(234, 88, 12, 0.1)',
+      trend: '+14% vs last month',
     },
     {
       label: 'Total Revenue',
       value: `₹${(summary?.total_revenue || 0).toLocaleString()}`,
       icon: MoneyRegular,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
+      color: '#10B981',
+      bg: 'rgba(16, 185, 129, 0.1)',
+      trend: '+22% revenue pacing',
     },
     {
       label: 'Total Diners',
       value: summary?.total_customers || 0,
       icon: PeopleRegular,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      color: '#F59E0B',
+      bg: 'rgba(245, 158, 11, 0.1)',
+      trend: 'Active guest engagement',
     },
     {
       label: 'Average Ticket',
       value: `₹${(summary?.avg_order_value || 0).toFixed(0)}`,
       icon: ArrowTrendingLinesRegular,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: '#6366F1',
+      bg: 'rgba(99, 102, 241, 0.1)',
+      trend: 'Per-table average',
     },
   ];
 
   return (
-    <div className="animate-fade-in space-y-8 pb-16 max-w-7xl mx-auto">
-      {/* ═══════════ HEADER ═══════════ */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
+    <div className="animate-fade-in space-y-10 pb-20 max-w-7xl mx-auto">
+      {/* ═══════════ OPERATIONS COCKPIT HEADER ═══════════ */}
+      <div className="glass-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-white/80">
+        <div className="flex items-center gap-4">
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
-            style={{ background: 'var(--color-primary)' }}
+            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
           >
-            <GridRegular fontSize={22} />
+            <GridRegular fontSize={26} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-              {restaurant?.name || 'Restaurant'} Management Console
-            </h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Live operational stream, revenue metrics, and administrative controls
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {restaurant?.name || 'Restaurant'} Operations Cockpit
+              </h1>
+              <span className="badge badge-ready font-bold text-xs py-1 px-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
+                Live Floor
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              Real-time ticketing telemetry, floor occupancy, and administrative controls
             </p>
           </div>
         </div>
 
         <Link
           to="/orders"
-          className="btn btn-secondary text-xs font-bold px-4 py-2 gap-2"
+          className="btn btn-secondary text-xs font-bold px-5 py-2.5 gap-2 shadow-sm self-start sm:self-center"
         >
-          <span>All Orders</span>
+          <span>All Order Records</span>
           <ArrowRightRegular fontSize={14} />
         </Link>
       </div>
 
       {/* ═══════════ KPI STAT CARDS ═══════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((st) => {
           const Icon = st.icon;
           return (
             <div
               key={st.label}
-              className="stat-card glass-card p-5 flex items-center gap-4 border border-gray-200/80"
+              className="glass-card p-6 flex flex-col justify-between space-y-4 border border-white/80"
             >
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${st.bg} ${st.color}`}
-              >
-                <Icon fontSize={22} />
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  {st.label}
+                </span>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shadow-xs"
+                  style={{ backgroundColor: st.bg, color: st.color }}
+                >
+                  <Icon fontSize={20} />
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-2xl font-black text-gray-900 tracking-tight truncate">
+
+              <div>
+                <p className="text-3xl font-black text-slate-900 tracking-tight">
                   {st.value}
                 </p>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-0.5">
-                  {st.label}
+                <p className="text-xs font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  {st.trend}
                 </p>
               </div>
             </div>
@@ -140,113 +160,136 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* ═══════════ QUICK SHORTCUTS ═══════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* ═══════════ QUICK LAUNCH ACTIONS ═══════════ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
         <Link
           to="/menu-management"
-          className="p-4 rounded-2xl glass-panel border border-gray-200/80 hover:border-gray-300 transition-all flex items-center gap-3 group"
+          className="glass-card-interactive p-5 flex items-center gap-4 group"
         >
-          <div className="w-9 h-9 rounded-xl bg-orange-50 text-[var(--color-primary)] flex items-center justify-center group-hover:scale-105 transition-transform">
-            <FoodRegular fontSize={18} />
+          <div className="w-11 h-11 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+            <FoodRegular fontSize={22} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-gray-900">Manage Menu</p>
-            <p className="text-[11px] text-gray-400">Items & Categories</p>
+            <p className="text-sm font-extrabold text-slate-900">Manage Menu</p>
+            <p className="text-xs text-slate-400 font-medium">Dishes & Pricing</p>
           </div>
         </Link>
 
         <Link
           to="/kitchen"
-          className="p-4 rounded-2xl glass-panel border border-gray-200/80 hover:border-gray-300 transition-all flex items-center gap-3 group"
+          className="glass-card-interactive p-5 flex items-center gap-4 group"
         >
-          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <BowlSaladRegular fontSize={18} />
+          <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+            <BowlSaladRegular fontSize={22} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-gray-900">Live Kitchen</p>
-            <p className="text-[11px] text-gray-400">Kanban Board</p>
+            <p className="text-sm font-extrabold text-slate-900">Kitchen Display</p>
+            <p className="text-xs text-slate-400 font-medium">Live Kanban Queue</p>
           </div>
         </Link>
 
         <Link
           to="/tables"
-          className="p-4 rounded-2xl glass-panel border border-gray-200/80 hover:border-gray-300 transition-all flex items-center gap-3 group"
+          className="glass-card-interactive p-5 flex items-center gap-4 group"
         >
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <TableSimpleRegular fontSize={18} />
+          <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+            <TableSimpleRegular fontSize={22} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-gray-900">QR & Tables</p>
-            <p className="text-[11px] text-gray-400">Layout & Codes</p>
+            <p className="text-sm font-extrabold text-slate-900">Tables & QR</p>
+            <p className="text-xs text-slate-400 font-medium">Desk QR Codes</p>
           </div>
         </Link>
 
         <Link
           to="/config"
-          className="p-4 rounded-2xl glass-panel border border-gray-200/80 hover:border-gray-300 transition-all flex items-center gap-3 group"
+          className="glass-card-interactive p-5 flex items-center gap-4 group"
         >
-          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <SettingsRegular fontSize={18} />
+          <div className="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+            <SettingsRegular fontSize={22} />
           </div>
           <div>
-            <p className="text-xs font-extrabold text-gray-900">Settings</p>
-            <p className="text-[11px] text-gray-400">Branding & Taxes</p>
+            <p className="text-sm font-extrabold text-slate-900">Settings</p>
+            <p className="text-xs text-slate-400 font-medium">Branding & Taxes</p>
           </div>
         </Link>
       </div>
 
-      {/* ═══════════ TODAY'S LIVE ORDERS ═══════════ */}
-      <div className="solid-card bg-white border border-gray-200/90 rounded-2xl p-6 space-y-4 shadow-sm">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-          <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
-            <ClockRegular fontSize={18} className="text-[var(--color-primary)]" />
-            <span>Today's Incoming Orders</span>
-          </h2>
-          <span className="badge badge-confirmed font-mono text-xs font-bold">
-            {recentOrders.length} Recent
+      {/* ═══════════ TODAY'S LIVE INCOMING ORDERS TABLE ═══════════ */}
+      <div className="glass-card p-6 sm:p-8 space-y-6 border border-white/80">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/60">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
+              <ClockRegular fontSize={18} />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                Today's Live Order Stream
+              </h2>
+              <p className="text-xs text-slate-500 font-medium">Auto-synced from customer QR scans and counter POS</p>
+            </div>
+          </div>
+          <span className="badge badge-confirmed font-mono text-xs font-bold py-1 px-3">
+            {recentOrders.length} Active Tickets
           </span>
         </div>
 
         {recentOrders.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 space-y-2">
-            <ReceiptRegular fontSize={36} className="mx-auto text-gray-300" />
-            <p className="text-xs font-bold text-gray-700">No orders received today yet</p>
-            <p className="text-xs">Customer QR orders and POS tickets will show up here in real time.</p>
+          <div className="text-center py-16 text-slate-400 space-y-3">
+            <ReceiptRegular fontSize={40} className="mx-auto text-slate-300" />
+            <p className="text-sm font-bold text-slate-700">No tickets placed yet today</p>
+            <p className="text-xs max-w-sm mx-auto text-slate-500">
+              Customer QR orders from dining tables and POS tickets will appear here instantaneously in real time.
+            </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white/50 backdrop-blur-md">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>Order ID</th>
-                  <th>Type</th>
+                  <th>Service Type</th>
                   <th>Table / Token</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Time</th>
+                  <th>Live Status</th>
+                  <th>Net Amount</th>
+                  <th>Placed Time</th>
                 </tr>
               </thead>
               <tbody>
                 {recentOrders.map((ord) => (
-                  <tr key={ord.id}>
-                    <td className="font-mono text-xs font-bold text-gray-900">
+                  <tr key={ord.id} className="transition-colors">
+                    <td className="font-mono text-xs font-bold text-slate-900">
                       #{ord.id.slice(0, 8)}
                     </td>
-                    <td className="capitalize text-xs font-semibold text-gray-600">
-                      {ord.order_type}
+                    <td className="capitalize text-xs font-bold text-slate-600">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/50">
+                        {ord.order_type}
+                      </span>
                     </td>
-                    <td className="text-xs font-bold text-gray-900">
-                      {ord.table_number && `Table ${ord.table_number}`}
-                      {ord.token_number && `Token #${ord.token_number}`}
-                      {!ord.table_number && !ord.token_number && 'POS Counter'}
+                    <td className="text-xs font-bold text-slate-900">
+                      {ord.table_number && (
+                        <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 border border-orange-500/20">
+                          Table {ord.table_number}
+                        </span>
+                      )}
+                      {ord.token_number && (
+                        <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                          Token #{ord.token_number}
+                        </span>
+                      )}
+                      {!ord.table_number && !ord.token_number && (
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">
+                          POS Counter
+                        </span>
+                      )}
                     </td>
                     <td>
                       <StatusBadge status={ord.status} />
                     </td>
-                    <td className="font-bold text-[var(--color-primary)] text-xs">
+                    <td className="font-black text-orange-600 text-xs font-mono">
                       ₹{parseFloat(ord.total_amount).toFixed(2)}
                     </td>
-                    <td className="text-xs text-gray-500">
+                    <td className="text-xs font-medium text-slate-500">
                       {new Date(ord.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',

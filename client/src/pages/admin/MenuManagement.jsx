@@ -179,28 +179,33 @@ export default function MenuManagement() {
   return (
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
+      <div className="glass-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 border border-white/80">
+        <div className="flex items-center gap-4">
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
-            style={{ background: 'var(--color-primary)' }}
+            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0"
+            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
           >
-            <FoodRegular fontSize={22} />
+            <FoodRegular fontSize={26} />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Menu Management</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Manage dishes, pricing, tags, photography, and category structure
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Menu Catalog</h1>
+              <span className="badge badge-ready font-bold text-xs py-1 px-3">
+                {items.length} Active Dishes
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              Curate appetizers, entrees, beverages, allergens, and dietary badges
             </p>
           </div>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex items-center gap-2">
-          <div className="flex bg-white p-1 rounded-2xl border border-gray-200 shadow-xs">
+        {/* Tab switcher + Add Button */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex glass-pill p-1 rounded-full shadow-xs">
             <button
               onClick={() => setActiveTab('items')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
                 activeTab === 'items'
                   ? 'bg-[var(--color-primary)] text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -261,7 +266,7 @@ export default function MenuManagement() {
                 return (
                   <div
                     key={item.id}
-                    className="solid-card bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="glass-card border border-white/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
                   >
                     {imgUrl ? (
                       <img
