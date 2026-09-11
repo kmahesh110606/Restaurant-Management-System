@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" modified="2026-09-11T12:50:00.000Z" agent="Antigravity" version="24.7.5" type="device">
+  <diagram id="datamodel_diag" name="Entity Relationship Model">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="860" pageHeight="730" background="#1f1f1f" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="e_restaurant" parent="1" value="Restaurant" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="315" y="15" width="80" height="56" />
+        </mxCell>
+        <mxCell id="e_staff" parent="1" value="StaffProfile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="109" y="138" width="80" height="56" />
+        </mxCell>
+        <mxCell id="e_user" parent="1" value="User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="114" y="260" width="70" height="58" />
+        </mxCell>
+        <mxCell id="e_category" parent="1" value="Category" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="18" y="440" width="70" height="58" />
+        </mxCell>
+        <mxCell id="e_menuitem" parent="1" value="MenuItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="374" y="510" width="74" height="56" />
+        </mxCell>
+        <mxCell id="e_recipe" parent="1" value="Recipe" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="288" y="634" width="68" height="56" />
+        </mxCell>
+        <mxCell id="e_translation" parent="1" value="MenuTranslation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="448" y="634" width="108" height="56" />
+        </mxCell>
+        <mxCell id="e_table" parent="1" value="Table" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="226" y="386" width="66" height="56" />
+        </mxCell>
+        <mxCell id="e_token" parent="1" value="Token" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="386" y="378" width="68" height="65" />
+        </mxCell>
+        <mxCell id="e_bill" parent="1" value="Bill" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="477" y="138" width="66" height="56" />
+        </mxCell>
+        <mxCell id="e_order" parent="1" value="Order" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="430" y="255" width="68" height="65" />
+        </mxCell>
+        <mxCell id="e_customer" parent="1" value="Customer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="598" y="386" width="72" height="56" />
+        </mxCell>
+        <mxCell id="e_orderitem" parent="1" value="OrderItem" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=12;align=center;verticalAlign=middle;strokeWidth=1.2;" vertex="1">
+          <mxGeometry as="geometry" x="760" y="386" width="72" height="56" />
+        </mxCell>
+        <mxCell id="rel_rest_staff" parent="1" value="employs" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.2;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_restaurant" target="e_staff">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="331" y="71" />
+              <mxPoint x="149" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_staff_user" parent="1" value="extends" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERmandOne;endFill=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_staff" target="e_user">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="rel_rest_cat" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" edge="1" source="e_restaurant" target="e_category">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="53" y="43" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_cat_item" parent="1" value="contains" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" source="e_category" target="e_menuitem">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="53" y="538" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_item_recipe" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToOne;endFill=0;exitX=0.25;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_menuitem" target="e_recipe">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="392" y="600" />
+              <mxPoint x="322" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_item_trans" parent="1" value="translations" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.75;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_menuitem" target="e_translation">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="430" y="600" />
+              <mxPoint x="502" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_rest_table" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.25;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_restaurant" target="e_table">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="259" y="100" />
+              <mxPoint x="259" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_rest_token" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.45;exitY=1;entryX=0.3;entryY=0;" edge="1" source="e_restaurant" target="e_token">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="355" y="160" />
+              <mxPoint x="406" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_rest_order" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.65;exitY=1;entryX=0.4;entryY=0;" edge="1" source="e_restaurant" target="e_order">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="367" y="160" />
+              <mxPoint x="457" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_rest_bill" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.85;exitY=1;entryX=0.5;entryY=0;" edge="1" source="e_restaurant" target="e_bill">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="510" y="71" />
+              <mxPoint x="510" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_rest_cust" parent="1" value="has" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" source="e_restaurant" target="e_customer">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="634" y="43" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_bill_order" parent="1" value="consolidates" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.5;exitY=1;entryX=0.8;entryY=0;" edge="1" source="e_bill" target="e_order">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="510" y="220" />
+              <mxPoint x="484" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_table_order" parent="1" value="seated at" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.8;exitY=0;entryX=0;entryY=0.7;" edge="1" source="e_table" target="e_order">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="rel_token_order" parent="1" value="assigned" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERzeroToOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" source="e_token" target="e_order">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="rel_cust_order" parent="1" value="placed by" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=0.2;exitY=0;entryX=1;entryY=0.7;" edge="1" source="e_customer" target="e_order">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="rel_order_item" parent="1" value="contains" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;exitX=1;exitY=0.4;entryX=0.5;entryY=0;" edge="1" source="e_order" target="e_orderitem">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="796" y="281" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_oi_menu" parent="1" value="references" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;strokeWidth=1.2;fontColor=#ffffff;fontSize=10;labelBackgroundColor=#1f1f1f;startArrow=ERzeroToMany;startFill=0;endArrow=ERmandOne;endFill=0;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" source="e_orderitem" target="e_menuitem">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="796" y="538" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

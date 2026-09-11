@@ -15,17 +15,69 @@ A full-stack, multi-tenant restaurant management platform with adaptive workflow
 
 ## Software Design
 
-Savore uses a three-tier client–server architecture: React presents customer and staff workflows, a layered Django REST backend handles application behavior, and PostgreSQL stores restaurant-scoped data. Shared UI components, API modules and serializers separate responsibilities, while server-side pricing and relational order/bill models keep core calculations close to the data. The design review documents implementation limits alongside these choices.
+Savore follows a three-tier client–server architecture: a modern React 19 single-page application handles role-based user workflows, a modular Django REST backend manages business logic and access control, and PostgreSQL 16 guarantees persistent data isolation across tenants. High cohesion and loose coupling are enforced by decoupling UI components, API clients, and serializers, while server-side pricing and bill recalculation protect financial transactions from client tampering.
 
-- [Software Design Document — PDF, 10 pages](docs/design/Software-Design-Document.pdf)
-- [Design package, editable Draw.io files and all PNG exports](docs/design/README.md)
-- [Implementation review and verification results](docs/design/REVIEW.md)
+-  **[Design Assets Package (Draw.io Sources, PNGs, Screens)](docs/design/)**
+-  **Diagram Sources**: [Architecture Diagram](docs/design/architecture.drawio) · [Authentication Flow](docs/design/authentication.drawio) · [Data Model](docs/design/datamodel.drawio)
 
-![Updated system architecture](docs/design/diagrams/01-architecture.png)
+### 1. High-Level System Architecture
 
-[Architecture source](docs/design/diagrams/01-architecture.drawio) · [Modules](docs/design/diagrams/02-modules.png) · [Catalog data model](docs/design/diagrams/03-data-catalog.png) · [Orders and billing data model](docs/design/diagrams/04-data-operations.png) · [Order-to-bill sequence](docs/design/diagrams/05-order-flow.png)
+A layered, three-tier architecture separates Presentation, Business Logic, and Data Persistence:
 
-The report includes code snippets and a source-based review of six existing UI screens. Figma prototypes and screenshots are deferred for now.
+![System Architecture](docs/design/architecture.png)
+
+* **Presentation Tier**: React SPA divided into customer portals (QR ordering, reservations), staff workspaces (kitchen KDS, waiter floor), and admin dashboards.
+* **Business Logic Tier**: Django REST Framework with SimpleJWT auth, role-based permission classes, resource ViewSets, and dedicated read/write serializers.
+* **Data Tier**: Relational PostgreSQL 16 database scoped per restaurant tenant, with media storage for dish imagery and dynamic table QR codes.
+* **Diagram Files**: [Editable Draw.io Source](docs/design/architecture.drawio) · [PNG Export](docs/design/architecture.png)
+
+---
+
+### 2. Authentication & Authorization Flow
+
+Role-based access is secured through stateless JWT authentication:
+
+![Authentication Flow](docs/design/authentication.png)
+
+* **Flow**: Staff submit credentials → SimpleJWT returns access and refresh tokens along with tenant and role metadata → React client stores tokens securely → Subsequent API requests include the Bearer token, which Django verifies against role permissions.
+* **Diagram Files**: [Editable Draw.io Source](docs/design/authentication.drawio) · [PNG Export](docs/design/authentication.png)
+
+---
+
+### 3. Entity-Relationship Data Model
+
+Multi-tenant relational database structure in Crow's Foot ER notation:
+
+![Data Model](docs/design/datamodel.png)
+
+* **Tenancy & Isolation**: Top-level `Restaurant` entity anchors all data (`Category`, `MenuItem`, `Table`, `Token`, `Order`, `Bill`, `Customer`, `StaffProfile`).
+* **Relational Integrity**: Orders map to tables or counter tokens; bills consolidate unpaid orders with automatic server-side tax and discount calculation.
+* **Diagram Files**: [Editable Draw.io Source](docs/design/datamodel.drawio) · [PNG Export](docs/design/datamodel.png)
+
+---
+
+### 4. User Interface Design (6 Core Screens)
+
+All UI interfaces are designed for low cognitive friction, responsive feedback, and quick execution in busy dining environments.
+
+| Screen | View Name | Description | Preview |
+| :---: | :--- | :--- | :---: |
+| **1** | **Manager Analytics Portal** | Telemetry metrics, daily sales curves, top dish dispatch metrics, weekly shift rotations | [View Image](docs/design/Picture1.png) |
+| **2** | **Staff Operations Dashboard** | Live Kanban floor pipeline (Pending, Preparing, Ready, Served) & table assignments | [View Image](docs/design/Picture2.png) |
+| **3** | **Customer Table Reservation** | Date/time picker, interactive table floor map with seat availability, and confirmation modal | [View Image](docs/design/Picture3.png) |
+| **4** | **Customer Digital Menu** | Category tabs, dish cards with pricing/descriptions/allergens, and live slide-out cart | [View Image](docs/design/Picture4.png) |
+| **5** | **Kitchen Display System (KDS)** | Real-time chef ticket queue (Pending Prep, On the Stove, Ready, Done) with allergy alerts | [View Image](docs/design/Picture5.png) |
+| **6** | **Admin Operations Overview** | Real-time revenue telemetry, table occupancy, average prep times, and live order stream | [View Image](docs/design/Picture6.png) |
+
+---
+
+### 5. Key Design Principles & Architectural Decisions
+
+1. **Modularity & Layered Separation**: Frontend modules (`api/`, `components/`, `contexts/`, `pages/`) and backend Django apps are completely decoupled, allowing independent development, testing, and deployment.
+2. **High Cohesion & Low Coupling**: Single-responsibility ViewSets handle discrete domain boundaries (`/orders/`, `/bills/`, `/menu-items/`), communicating via uniform JSON REST contracts.
+3. **Abstraction**: Complex state handling (authentication, active cart, tenant theming) is abstracted behind React Context providers, shielding presentation components from implementation details.
+4. **Server-Side Financial Security**: Client-submitted order prices are ignored; totals, taxes, and bills are computed strictly server-side from database records.
+5. **Adaptive Workflows**: Supports three distinct operating models within one platform: Table-based QR ordering, Counter Token pickup, and Shop direct-billing.
 
 ## Tech Stack
 
@@ -127,13 +179,13 @@ The Vite dev server proxies `/api` requests to `http://localhost:8000`.
 
 ## Workflows
 
-### 🪑 Table-based
+### Table-based
 Each table has a QR code. Customer scans → sees menu → places order mapped to their table. Multiple orders allowed until biller marks table as paid.
 
-### 🎫 Token-based
+### Token-based
 Customer orders at counter → receives auto-generated token number. Uses token at pickup. QR codes for common menu display.
 
-### 🏪 Shop / Biller
+### Shop / Biller
 Direct billing workflow. Biller enters items and generates bills.
 
 ## API Endpoints
