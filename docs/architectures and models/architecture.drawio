@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" modified="2026-09-11T12:50:00.000Z" agent="Antigravity" version="24.7.5" type="device">
+  <diagram id="arch_diag" name="System Architecture">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="920" background="#1f1f1f" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pres_tier" parent="1" value="Presentation Tier (React SPA)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#282828;strokeColor=#4e4e4e;fontColor=#cccccc;fontSize=13;fontStyle=0;verticalAlign=top;spacingTop=6;" vertex="1">
+          <mxGeometry as="geometry" x="14" y="14" width="918" height="108" />
+        </mxCell>
+        <mxCell id="pres_inner" parent="pres_tier" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#222222;strokeColor=#3e3e3e;" vertex="1">
+          <mxGeometry as="geometry" x="34" y="26" width="850" height="64" />
+        </mxCell>
+        <mxCell id="c_landing" parent="pres_tier" value="Landing Page" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="54" y="32" width="152" height="52" />
+        </mxCell>
+        <mxCell id="c_customer" parent="pres_tier" value="Customer QR Portal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="256" y="32" width="198" height="52" />
+        </mxCell>
+        <mxCell id="c_staff" parent="pres_tier" value="Staff Workspace" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="504" y="32" width="174" height="52" />
+        </mxCell>
+        <mxCell id="c_admin" parent="pres_tier" value="Admin Dashboard" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="728" y="32" width="184" height="52" />
+        </mxCell>
+        <mxCell id="lbl_rest_1" parent="1" value="REST API /api/v1/*" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#cccccc;fontSize=12;" vertex="1">
+          <mxGeometry as="geometry" x="50" y="148" width="130" height="26" />
+        </mxCell>
+        <mxCell id="lbl_rest_2" parent="1" value="REST API /api/v1/*" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#cccccc;fontSize=12;" vertex="1">
+          <mxGeometry as="geometry" x="280" y="148" width="130" height="26" />
+        </mxCell>
+        <mxCell id="lbl_rest_3" parent="1" value="REST API /api/v1/*" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#cccccc;fontSize=12;" vertex="1">
+          <mxGeometry as="geometry" x="515" y="148" width="130" height="26" />
+        </mxCell>
+        <mxCell id="lbl_rest_4" parent="1" value="REST API /api/v1/*" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#cccccc;fontSize=12;" vertex="1">
+          <mxGeometry as="geometry" x="745" y="148" width="130" height="26" />
+        </mxCell>
+        <mxCell id="biz_tier" parent="1" value="Business Logic Tier (Django)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#282828;strokeColor=#4e4e4e;fontColor=#cccccc;fontSize=13;fontStyle=0;verticalAlign=top;spacingTop=6;" vertex="1">
+          <mxGeometry as="geometry" x="56" y="190" width="805" height="510" />
+        </mxCell>
+        <mxCell id="c_auth" parent="1" value="&lt;b&gt;Auth Module&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; font-weight: normal; color: #cccccc;&quot;&gt;JWT + Google OAuth&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="339" y="216" width="258" height="78" />
+        </mxCell>
+        <mxCell id="c_perm" parent="1" value="&lt;b&gt;Permission Layer&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; font-weight: normal; color: #cccccc;&quot;&gt;Role-Based&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="339" y="344" width="258" height="77" />
+        </mxCell>
+        <mxCell id="c_viewsets" parent="1" value="&lt;b&gt;ViewSets&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; font-weight: normal; color: #cccccc;&quot;&gt;12 Resource Endpoints&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="339" y="472" width="258" height="77" />
+        </mxCell>
+        <mxCell id="c_serializers" parent="1" value="&lt;b&gt;Serializers&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; font-weight: normal; color: #cccccc;&quot;&gt;Read/Write Separation&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="208" y="598" width="259" height="80" />
+        </mxCell>
+        <mxCell id="data_tier" parent="1" value="Data Tier" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#282828;strokeColor=#4e4e4e;fontColor=#cccccc;fontSize=13;fontStyle=0;verticalAlign=top;spacingTop=6;" vertex="1">
+          <mxGeometry as="geometry" x="224" y="744" width="540" height="135" />
+        </mxCell>
+        <mxCell id="c_postgres" parent="1" value="&lt;b&gt;PostgreSQL 16&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="260" y="782" width="160" height="60" />
+        </mxCell>
+        <mxCell id="c_media" parent="1" value="&lt;b&gt;Media Storage&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px; font-weight: normal; color: #cccccc;&quot;&gt;Images, QR Codes&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1e1e1e;strokeColor=#666666;fontColor=#ffffff;fontSize=13;align=center;verticalAlign=middle;" vertex="1">
+          <mxGeometry as="geometry" x="468" y="772" width="258" height="80" />
+        </mxCell>
+        <mxCell id="edge_landing_auth" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;" edge="1" source="c_landing" target="c_auth">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="130" y="114" />
+              <mxPoint x="130" y="230" />
+              <mxPoint x="330" y="235" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_cust_auth" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;" edge="1" source="c_customer" target="c_auth">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="360" y="114" />
+              <mxPoint x="360" y="175" />
+              <mxPoint x="420" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_staff_auth" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;" edge="1" source="c_staff" target="c_auth">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="585" y="114" />
+              <mxPoint x="585" y="175" />
+              <mxPoint x="550" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_admin_auth" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;" edge="1" source="c_admin" target="c_auth">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="810" y="114" />
+              <mxPoint x="810" y="230" />
+              <mxPoint x="605" y="235" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_auth_perm" parent="1" style="html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_auth" target="c_perm">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="edge_perm_view" parent="1" style="html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_perm" target="c_viewsets">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="edge_view_ser" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;exitX=0.2;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_viewsets" target="c_serializers">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="391" y="555" />
+              <mxPoint x="340" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_ser_db" parent="1" style="html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_serializers" target="c_postgres">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="edge_view_media" parent="1" style="edgeStyle=orthogonalEdgeStyle;curved=1;html=1;strokeColor=#888888;endArrow=block;endFill=1;strokeWidth=1.2;exitX=0.8;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_viewsets" target="c_media">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="550" y="555" />
+              <mxPoint x="597" y="680" />
+              <mxPoint x="597" y="760" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
