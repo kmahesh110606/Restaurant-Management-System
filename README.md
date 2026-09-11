@@ -13,6 +13,20 @@ A full-stack, multi-tenant restaurant management platform with adaptive workflow
 └──────────────────┘     └──────────────────┘     └──────────────────┘
 ```
 
+## Software Design
+
+Savore uses a three-tier client–server architecture: React presents customer and staff workflows, a layered Django REST backend handles application behavior, and PostgreSQL stores restaurant-scoped data. Shared UI components, API modules and serializers separate responsibilities, while server-side pricing and relational order/bill models keep core calculations close to the data. The design review documents implementation limits alongside these choices.
+
+- [Software Design Document — PDF, 10 pages](docs/design/Software-Design-Document.pdf)
+- [Design package, editable Draw.io files and all PNG exports](docs/design/README.md)
+- [Implementation review and verification results](docs/design/REVIEW.md)
+
+![Updated system architecture](docs/design/diagrams/01-architecture.png)
+
+[Architecture source](docs/design/diagrams/01-architecture.drawio) · [Modules](docs/design/diagrams/02-modules.png) · [Catalog data model](docs/design/diagrams/03-data-catalog.png) · [Orders and billing data model](docs/design/diagrams/04-data-operations.png) · [Order-to-bill sequence](docs/design/diagrams/05-order-flow.png)
+
+The report includes code snippets and a source-based review of six existing UI screens. Figma prototypes and screenshots are deferred for now.
+
 ## Tech Stack
 
 | Layer      | Technology                                |
