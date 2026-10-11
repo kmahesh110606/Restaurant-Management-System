@@ -1,0 +1,303 @@
+﻿
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\components\WorkspaceLayout.jsx
+  66:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  64 |   // Close sidebar on route change (mobile)
+  65 |   useEffect(() => {
+> 66 |     setSidebarOpen(false);
+     |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  67 |     setProfileOpen(false);
+  68 |   }, [location.pathname]);
+  69 |  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\contexts\AuthContext.jsx
+  34:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  32 |         .finally(() => setLoading(false));
+  33 |     } else {
+> 34 |       setLoading(false);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  35 |     }
+  36 |   }, []);
+  37 |  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\contexts\CartContext.jsx
+  25:11  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  23 |         const saved = localStorage.getItem(getStorageKey(restaurantSlug));
+  24 |         if (saved) {
+> 25 |           setItems(JSON.parse(saved));
+     |           ^^^^^^^^ Avoid calling setState() directly within an effect
+  26 |         } else {
+  27 |           setItems([]);
+  28 |         }  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\AdminOrders.jsx
+  10:3  error    'FilterRegular' is defined but never used                                                                       no-unused-vars
+  48:6  warning  React Hook useEffect has a missing dependency: 'fetchOrders'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\AnalyticsDashboard.jsx
+   9:3   error    'CalendarRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  72:21  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  70 |   };
+  71 |
+> 72 |   useEffect(() => { fetchAll(); }, []);
+     |                     ^^^^^^^^ Avoid calling setState() directly within an effect
+  73 |
+  74 |   const handleDaysChange = (d) => {
+  75 |     setDays(d);  react-hooks/set-state-in-effect
+  72:36  warning  React Hook useEffect has a missing dependency: 'fetchAll'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\ConfigPage.jsx
+  12:3   error  'CheckmarkCircleRegular' is defined but never used  no-unused-vars
+  13:3   error  'ArrowUploadRegular' is defined but never used      no-unused-vars
+  17:3   error  'GlobeRegular' is defined but never used            no-unused-vars
+  18:3   error  'CallRegular' is defined but never used             no-unused-vars
+  19:3   error  'LocationRegular' is defined but never used         no-unused-vars
+  54:18  error  'setBgFile' is assigned a value but never used      no-unused-vars
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\MenuManagement.jsx
+  13:3   error  'ImageRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  14:3   error  'DismissRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  15:3   error  'CheckmarkRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  16:3   error  'SparkleRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  63:21  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  61 |   };
+  62 |
+> 63 |   useEffect(() => { fetchData(); }, []);
+     |                     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  64 |
+  65 |   // Item handlers
+  66 |   const openItemModal = (item = null) => {  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\RecipeManagement.jsx
+  14:3   error  'FoodRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  16:3   error  'PeopleRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  54:21  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  52 |   };
+  53 |
+> 54 |   useEffect(() => { fetchData(); }, []);
+     |                     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  55 |
+  56 |   const openModal = (recipe = null) => {
+  57 |     if (recipe) {  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\StaffManagement.jsx
+  12:3   error  'PersonRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  13:3   error  'MailRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  14:3   error  'CallRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  15:3   error  'ShieldRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  47:21  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  45 |   };
+  46 |
+> 47 |   useEffect(() => { fetchStaff(); }, []);
+     |                     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  48 |
+  49 |   const handleSubmit = async (e) => {
+  50 |     e.preventDefault();  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\admin\TableManagement.jsx
+  12:3   error  'QrCodeRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  44:21  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  42 |   };
+  43 |
+> 44 |   useEffect(() => { fetchData(); }, []);
+     |                     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  45 |
+  46 |   const openModal = (table = null) => {
+  47 |     if (table) {  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\biller\BillerDashboard.jsx
+   12:3   error  'MoneyRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+   17:3   error  'DismissRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+   19:3   error  'FilterRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+   26:8   error  'EmptyState' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  412:53  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  410 |                 <span>Date & Time:</span>
+  411 |                 <span className="font-semibold text-gray-800">
+> 412 |                   {new Date(billModal.created_at || Date.now()).toLocaleString()}
+      |                                                     ^^^^^^^^^^ Cannot call impure function
+  413 |                 </span>
+  414 |               </div>
+  415 |               <div className="flex justify-between text-gray-600">  react-hooks/purity
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\biller\BillerHistory.jsx
+  11:3  error    'FilterRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+  39:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  37 |
+  38 |   useEffect(() => {
+> 39 |     fetchBills();
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |   }, [filter]);
+  41 |
+  42 |   const filteredBills = bills.filter((b) => {  react-hooks/set-state-in-effect
+  40:6  warning  React Hook useEffect has a missing dependency: 'fetchBills'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\customer\BookTablePage.jsx
+  27:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |   useEffect(() => {
+  26 |     if (!slug) return;
+> 27 |     setLoading(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |     getTables()
+  29 |       .then(({ data }) => {
+  30 |         const list = data.results || data;  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\customer\MenuPage.jsx
+  48:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  46 |   useEffect(() => {
+  47 |     if (!slug) return;
+> 48 |     setLoading(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |     setError(null);
+  50 |
+  51 |     getCategoriesNested(slug)  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\customer\OrderStatusPage.jsx
+  58:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  56 |   useEffect(() => {
+  57 |     if (!orderId) return;
+> 58 |     fetchStatus();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  59 |
+  60 |     // Poll every 10 seconds
+  61 |     intervalRef.current = setInterval(fetchStatus, 10000);  react-hooks/set-state-in-effect
+  65:6  warning  React Hook useEffect has a missing dependency: 'fetchStatus'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\landing\LandingPage.jsx
+  15:3  error  'PeopleTeamRegular' is defined but never used       no-unused-vars
+  22:3  error  'ShieldCheckmarkRegular' is defined but never used  no-unused-vars
+  23:3  error  'CheckmarkRegular' is defined but never used        no-unused-vars
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\staff\KitchenDashboard.jsx
+  12:3  error  'BookOpenRegular' is defined but never used  no-unused-vars
+  13:3  error  'TimerRegular' is defined but never used     no-unused-vars
+  14:3  error  'AlertRegular' is defined but never used     no-unused-vars
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\staff\KitchenKanbanPage.jsx
+  13:3  error  'FoodRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  18:8  error  'StatusBadge' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  70:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  68 |
+  69 |   useEffect(() => {
+> 70 |     fetchOrders();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |     intervalRef.current = setInterval(fetchOrders, 8000);
+  72 |     return () => clearInterval(intervalRef.current);
+  73 |   }, []);  react-hooks/set-state-in-effect
+
+C:\RISHABH\VIT\SEMESTER 5\BCSE301L - SOFTWARE ENGINEERING\Restaurant-Management-System\client\src\pages\staff\WaiterDashboard.jsx
+  12:3   error  'ClockRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+  14:3   error  'PersonRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+  15:3   error  'AddRegular' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  26:11  error  'restaurant' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  27:9   error  'navigate' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+  52:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  50 |
+  51 |   useEffect(() => {
+> 52 |     fetchData();
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |     intervalRef.current = setInterval(fetchData, 8000);
+  54 |     return () => clearInterval(intervalRef.current);
+  55 |   }, []);  react-hooks/set-state-in-effect
+
+Γ£û 56 problems (52 errors, 4 warnings)
+

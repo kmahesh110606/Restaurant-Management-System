@@ -19,8 +19,6 @@ import {
   NavigationRegular,
   DismissRegular,
   ChevronDownRegular,
-  PersonRegular,
-  AlertRegular,
   BowlSaladRegular,
   ClipboardTaskRegular,
   HistoryRegular,
@@ -57,7 +55,7 @@ const BILLER_NAV = [
 ];
 
 export default function WorkspaceLayout() {
-  const { user, role, restaurant, logout, isAdmin, isKitchen, isWaiter, isBiller } = useAuth();
+  const { user, role, restaurant, logout, isKitchen, isWaiter, isBiller } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);

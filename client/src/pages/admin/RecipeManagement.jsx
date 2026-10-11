@@ -11,9 +11,7 @@ import {
   DeleteRegular,
   SaveRegular,
   ClockRegular,
-  FoodRegular,
   TimerRegular,
-  PeopleRegular,
 } from '@fluentui/react-icons';
 import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from '../../api/recipes';
 import { getMenuItems } from '../../api/menu';

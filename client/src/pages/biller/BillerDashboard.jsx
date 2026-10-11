@@ -9,21 +9,18 @@ import {
   PaymentRegular,
   SearchRegular,
   ReceiptRegular,
-  MoneyRegular,
   CheckmarkCircleRegular,
   PrintRegular,
   TableSimpleRegular,
   TicketHorizontalRegular,
-  DismissRegular,
   ArrowClockwiseRegular,
-  FilterRegular,
 } from '@fluentui/react-icons';
 import { lookupForBilling, createBill, markBillPaid, getBills } from '../../api/bills';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState';
+
 import toast from 'react-hot-toast';
 
 export default function BillerDashboard() {
@@ -409,7 +406,7 @@ export default function BillerDashboard() {
               <div className="flex justify-between text-gray-600">
                 <span>Date & Time:</span>
                 <span className="font-semibold text-gray-800">
-                  {new Date(billModal.created_at || Date.now()).toLocaleString()}
+                  {new Date(billModal.created_at || billModal._openedAt || 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-gray-600">

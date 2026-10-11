@@ -10,10 +10,6 @@ import {
   EditRegular,
   DeleteRegular,
   SaveRegular,
-  ImageRegular,
-  DismissRegular,
-  CheckmarkRegular,
-  SparkleRegular,
 } from '@fluentui/react-icons';
 import {
   getCategories, createCategory, updateCategory, deleteCategory,

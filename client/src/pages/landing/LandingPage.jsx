@@ -12,15 +12,12 @@ import {
   ReceiptRegular,
   DataBarVerticalRegular,
   TableSimpleRegular,
-  PeopleTeamRegular,
   BookOpenRegular,
   CheckmarkCircleRegular,
   ArrowRightRegular,
   SparkleRegular,
   TimerRegular,
   ArrowTrendingLinesRegular,
-  ShieldCheckmarkRegular,
-  CheckmarkRegular,
 } from '@fluentui/react-icons';
 import LandingNavbar from './LandingNavbar';
 

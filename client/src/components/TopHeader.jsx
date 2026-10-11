@@ -3,7 +3,7 @@
  */
 
 import { useLocation } from 'react-router-dom';
-import { Open24Regular, Person24Regular, Sparkle24Filled } from '@fluentui/react-icons';
+import { Open24Regular } from '@fluentui/react-icons';
 import { useAuth } from '../contexts/AuthContext';
 
 const PATH_TITLES = {

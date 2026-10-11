@@ -9,10 +9,6 @@ import {
   AddRegular,
   DeleteRegular,
   SaveRegular,
-  PersonRegular,
-  MailRegular,
-  CallRegular,
-  ShieldRegular,
 } from '@fluentui/react-icons';
 import { getStaff, createStaff, deleteStaff } from '../../api/staff';
 import Modal from '../../components/Modal';

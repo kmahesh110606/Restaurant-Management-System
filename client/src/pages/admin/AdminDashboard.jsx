@@ -17,7 +17,6 @@ import {
   TableSimpleRegular,
   SettingsRegular,
   BowlSaladRegular,
-  SparkleRegular,
 } from '@fluentui/react-icons';
 import { Link } from 'react-router-dom';
 import { getAnalyticsSummary } from '../../api/analytics';
