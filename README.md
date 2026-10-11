@@ -88,6 +88,10 @@ All UI interfaces are designed for low cognitive friction, responsive feedback, 
 | Database   | PostgreSQL 16                              |
 | Deployment | Docker, Docker Compose, Nginx, Gunicorn   |
 
+## Continuous Integration
+
+The GitHub Actions workflow at `.github/workflows/ci.yml` runs on pushes and pull requests targeting `main`, and can also be started manually. It lints and builds the frontend and runs Django configuration checks and backend tests. Deployment is not configured because it depends on the hosting provider and deployment credentials.
+
 ## Quick Start (Docker) - Local Development
 
 ### Prerequisites
