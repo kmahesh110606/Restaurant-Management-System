@@ -18,6 +18,7 @@ export default function BookTablePage() {
   const { restaurantConfig, slug } = useOutletContext() || {};
   const navigate = useNavigate();
 
+  const [error, setError] = useState(false);
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -25,12 +26,12 @@ export default function BookTablePage() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    getTables()
+    getTables({ restaurant: slug, public: true })
       .then(({ data }) => {
         const list = data.results || data;
         setTables(Array.isArray(list) ? list : []);
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -43,6 +44,8 @@ export default function BookTablePage() {
       navigate(`/${slug}/menu?table=${selectedTable.number}`);
     }
   };
+
+  if (error) return <EmptyState title="Could not load tables" actionLabel="Retry" onAction={() => window.location.reload()} />;
 
   if (loading) return <LoadingSpinner />;
 
@@ -59,9 +62,6 @@ export default function BookTablePage() {
     <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
       <div>
         <h1 className="text-xl font-extrabold text-gray-900">Select a Table</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Choose your table to start ordering
-        </p>
       </div>
 
       {tables.length === 0 ? (

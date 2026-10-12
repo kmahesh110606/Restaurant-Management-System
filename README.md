@@ -1,4 +1,8 @@
-# 🍽️ Restaurant Management System
+# 🍽️ Restaurant Management Service
+
+**Application name: Restaurant Management Service (RMS).**
+
+For unit tests, Django API integration tests, Selenium browser tests and GitHub Actions, see [Testing and CI](docs/TESTING.md). Run `npm --prefix client test`, `python server/check_local.py`, and `python tests/selenium/run.py` from this directory after installing the documented dependencies.
 
 A full-stack, multi-tenant restaurant management platform with adaptive workflows (table-based, token-based, shop/biller), role-based access, QR menu ordering, and Docker deployment.
 
@@ -15,7 +19,7 @@ A full-stack, multi-tenant restaurant management platform with adaptive workflow
 
 ## Software Design
 
-Savore follows a three-tier client–server architecture: a modern React 19 single-page application handles role-based user workflows, a modular Django REST backend manages business logic and access control, and PostgreSQL 16 guarantees persistent data isolation across tenants. High cohesion and loose coupling are enforced by decoupling UI components, API clients, and serializers, while server-side pricing and bill recalculation protect financial transactions from client tampering.
+RMS follows a three-tier client–server architecture: a modern React 19 single-page application handles role-based user workflows, a modular Django REST backend manages business logic and access control, and PostgreSQL 16 guarantees persistent data isolation across tenants. High cohesion and loose coupling are enforced by decoupling UI components, API clients, and serializers, while server-side pricing and bill recalculation protect financial transactions from client tampering.
 
 -  **[Design Assets Package (Draw.io Sources, PNGs, Screens)](docs/design/)**
 -  **Diagram Sources**: [Architecture Diagram](docs/design/architecture.drawio) · [Authentication Flow](docs/design/authentication.drawio) · [Data Model](docs/design/datamodel.drawio)
@@ -140,7 +144,9 @@ All UI interfaces are designed for low cognitive friction, responsive feedback, 
 
 6. **Access the application**
    - Frontend: [http://localhost:3000](http://localhost:3000)
+   - Interactive Demo Sandbox: [http://localhost:3000/demo](http://localhost:3000/demo)
    - Staff Login: [http://localhost:3000/login](http://localhost:3000/login)
+   - Platform Superadmin Portal: [http://localhost:3000/platform](http://localhost:3000/platform)
    - Customer Menu: [http://localhost:3000/my-restaurant/menu](http://localhost:3000/my-restaurant/menu)
    - Django Admin: [http://localhost:8000/admin/](http://localhost:8000/admin/)
    - API: [http://localhost:8000/api/v1/](http://localhost:8000/api/v1/)
@@ -193,6 +199,8 @@ Direct billing workflow. Biller enters items and generates bills.
 | Endpoint                          | Method    | Auth Required | Description                  |
 |-----------------------------------|-----------|---------------|------------------------------|
 | `/api/v1/auth/login/`             | POST      | No            | Staff login (returns JWT)    |
+| `/api/v1/auth/token/refresh/`     | POST      | No            | Refresh expired access token |
+| `/api/v1/auth/signup/`            | POST      | No            | Register new restaurant/admin|
 | `/api/v1/auth/me/`                | GET       | Yes           | Current user profile         |
 | `/api/v1/restaurants/`            | GET/POST  | Admin         | Restaurant CRUD              |
 | `/api/v1/restaurants/{slug}/public/` | GET    | No            | Public restaurant info       |
@@ -306,3 +314,13 @@ Restaurant-Management-System/
 ## License
 
 See [LICENSE](./LICENSE) file.
+
+## Current implementation review
+
+See [Project review — 12 October 2026](docs/review/PROJECT-REVIEW.md) for the flow map, UI changes, regression evidence and production blockers. This review supersedes older feature claims in this README: table selection is not a reservation system; payments are manually recorded; split billing and shift scheduling are not implemented.
+
+The landing page and shared workspaces have been refined, with responsive 3D scroll motion, reduced-motion support and role-specific navigation. Customer ordering, cashier counter entry and several tenant/billing integrity defects have been repaired.
+
+For database-safe local API checks run `python server/check_local.py`. New migrations protect historical order lines and add retry protection plus dish-name snapshots. Back up and restore-test production data before applying them.
+
+`compose.production.yml` is a separate production configuration requiring a trusted TLS reverse proxy and explicit environment values. It has not been container-validated in this environment. Normal startup no longer creates or resets an administrator. Use Django's `createsuperuser` interactively, or the explicit `seed_platform_admin` command with `RMS_ADMIN_USERNAME`, `RMS_ADMIN_EMAIL` and `RMS_ADMIN_PASSWORD` set securely. Existing users are never overwritten by that command.

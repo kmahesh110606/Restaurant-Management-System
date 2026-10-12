@@ -1,8 +1,5 @@
-/**
- * AdminDashboard — iOS 28 Liquid Glass Operations Cockpit.
- * KPI telemetry cards with dynamic mesh refractions,
- * live incoming orders stream, quick shortcuts, and glassmorphic tables.
- */
+import EmptyState from '../../components/EmptyState';
+
 
 import { useEffect, useState } from 'react';
 import {
@@ -30,6 +27,7 @@ export default function AdminDashboard() {
   const { restaurant } = useAuth();
   const [summary, setSummary] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,9 +40,11 @@ export default function AdminDashboard() {
         const results = ordersRes.data.results || ordersRes.data || [];
         setRecentOrders(results.slice(0, 8));
       })
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
 
   if (loading) {
     return (
@@ -56,28 +56,28 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      label: 'Monthly Orders',
+      label: 'Orders · 30 days',
       value: summary?.total_orders || 0,
       icon: ReceiptRegular,
       color: '#EA580C',
       bg: 'rgba(234, 88, 12, 0.1)',
-      trend: '+14% vs last month',
+
     },
     {
-      label: 'Total Revenue',
+      label: 'Order value',
       value: `₹${(summary?.total_revenue || 0).toLocaleString()}`,
       icon: MoneyRegular,
       color: '#10B981',
       bg: 'rgba(16, 185, 129, 0.1)',
-      trend: '+22% revenue pacing',
+
     },
     {
-      label: 'Total Diners',
+      label: 'New customers · 30 days',
       value: summary?.total_customers || 0,
       icon: PeopleRegular,
       color: '#F59E0B',
       bg: 'rgba(245, 158, 11, 0.1)',
-      trend: 'Active guest engagement',
+
     },
     {
       label: 'Average Ticket',
@@ -85,40 +85,21 @@ export default function AdminDashboard() {
       icon: ArrowTrendingLinesRegular,
       color: '#6366F1',
       bg: 'rgba(99, 102, 241, 0.1)',
-      trend: 'Per-table average',
+
     },
   ];
 
   return (
     <div className="animate-fade-in space-y-10 pb-20 max-w-7xl mx-auto">
-      {/* ═══════════ OPERATIONS COCKPIT HEADER ═══════════ */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-white/80">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
-          >
-            <GridRegular fontSize={26} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {restaurant?.name || 'Restaurant'} Operations Cockpit
-              </h1>
-              <span className="badge badge-ready font-bold text-xs py-1 px-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
-                Live Floor
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Real-time ticketing telemetry, floor occupancy, and administrative controls
-            </p>
-          </div>
-        </div>
+      {/* ═══════════ DASHBOARD HEADER ═══════════ */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Dashboard
+        </h1>
 
         <Link
           to="/orders"
-          className="btn btn-secondary text-xs font-bold px-5 py-2.5 gap-2 shadow-sm self-start sm:self-center"
+          className="btn btn-secondary text-xs font-bold px-5 py-2.5 gap-2 shadow-xs self-start sm:self-center"
         >
           <span>All Order Records</span>
           <ArrowRightRegular fontSize={14} />
@@ -150,10 +131,7 @@ export default function AdminDashboard() {
                 <p className="text-3xl font-black text-slate-900 tracking-tight">
                   {st.value}
                 </p>
-                <p className="text-xs font-semibold text-emerald-600 mt-1 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  {st.trend}
-                </p>
+
               </div>
             </div>
           );
@@ -184,7 +162,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <p className="text-sm font-extrabold text-slate-900">Kitchen Display</p>
-            <p className="text-xs text-slate-400 font-medium">Live Kanban Queue</p>
+            <p className="text-xs text-slate-400 font-medium">Kitchen queue</p>
           </div>
         </Link>
 
@@ -224,13 +202,13 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-                Today's Live Order Stream
+                Today's orders
               </h2>
-              <p className="text-xs text-slate-500 font-medium">Auto-synced from customer QR scans and counter POS</p>
+              <p className="text-xs text-slate-500 font-medium"></p>
             </div>
           </div>
           <span className="badge badge-confirmed font-mono text-xs font-bold py-1 px-3">
-            {recentOrders.length} Active Tickets
+            {recentOrders.length} recent orders
           </span>
         </div>
 
@@ -250,7 +228,7 @@ export default function AdminDashboard() {
                   <th>Order ID</th>
                   <th>Service Type</th>
                   <th>Table / Token</th>
-                  <th>Live Status</th>
+                  <th>Status</th>
                   <th>Net Amount</th>
                   <th>Placed Time</th>
                 </tr>

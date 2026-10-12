@@ -1,10 +1,10 @@
-# 🎨 Savore RMS — Software Design & Architecture Package
+#  RMS — Software Design & Architecture Package
 
 This directory contains all design artifacts for **Digital Assignment 2 / Review 2**, including editable Draw.io diagram sources, high-resolution PNG exports, and user interface screen designs.
 
 ---
 
-## 📐 System & Architecture Diagrams
+## System & Architecture Diagrams
 
 All diagrams are provided in both **editable Draw.io XML format** (`.drawio`) and **high-resolution PNG exports** (`.png`).
 
@@ -16,7 +16,7 @@ All diagrams are provided in both **editable Draw.io XML format** (`.drawio`) an
 
 ---
 
-## 🖥️ User Interface Design (6 Screens)
+## User Interface Design (6 Screens)
 
 The UI adheres to modern, user-friendly design principles: clear visual hierarchy, accessible contrast, responsive layout, intuitive navigation, and status-driven color coding.
 
@@ -31,7 +31,7 @@ The UI adheres to modern, user-friendly design principles: clear visual hierarch
 
 ---
 
-## 🏛️ Design Decisions & Principles Summary
+## Design Decisions & Principles Summary
 
 1. **Modularity & Layered Separation**: Separation of Presentation (React SPA), Business Logic (DRF ViewSets), and Persistence (PostgreSQL).
 2. **High Cohesion & Low Coupling**: Domain-focused modules (`orders`, `tables`, `menu`, `bills`) communicating strictly via standardized REST contracts.

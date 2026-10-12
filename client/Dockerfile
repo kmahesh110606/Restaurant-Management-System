@@ -1,37 +1,16 @@
-# ---- Frontend Dockerfile ----
-# Multi-stage: Node build → Nginx serve
-
-# Stage 1: Build
 FROM node:22-alpine AS build
-
 WORKDIR /app
-
-# Copy package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm install --legacy-peer-deps
-
-# Copy source code
+RUN npm ci
 COPY . .
-
-# Set backend URL for production build
-ARG VITE_API_URL=http://localhost:8000
+ARG VITE_API_URL=""
+ARG VITE_GOOGLE_CLIENT_ID=""
 ENV VITE_API_URL=$VITE_API_URL
-
-# Build the app
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build
 
-# Stage 2: Serve with Nginx
 FROM nginx:alpine
-
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
-
 EXPOSE 3000
-
 CMD ["nginx", "-g", "daemon off;"]

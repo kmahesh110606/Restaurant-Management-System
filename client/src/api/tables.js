@@ -1,7 +1,7 @@
-import api from './client'; // Import custom Axios HTTP client instance
+import api, { getCollection } from './client'; // Import custom Axios HTTP client instance
 
 export const getTables = (params = {}) => // Export function to fetch list of dining tables with optional filters
-  api.get('/tables/', { params }); // Execute GET request to /tables/ with query parameters
+  getCollection(params.public ? '/tables/public/' : '/tables/', params); // Execute GET request to /tables/ with query parameters
 
 export const getTable = (id) => // Export function to fetch single dining table details by ID
   api.get(`/tables/${id}/`); // Execute GET request to /tables/{id}/

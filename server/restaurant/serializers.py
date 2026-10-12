@@ -1,16 +1,33 @@
 """
-DRF Serializers for the Restaurant Management System.
+DRF Serializers for the Restaurant Management Service.
 
 Separated into read (nested) and write (flat FK) serializers where needed.
 """
 
+from decimal import Decimal
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
 from restaurant.models import (
-    Restaurant, Category, MenuItem, MenuTranslation, Recipe,
+    phone_regex, Restaurant, Category, MenuItem, MenuTranslation, Recipe,
     Table, Token, Customer, Order, OrderItem, Bill, StaffProfile,
 )
+
+
+class TenantRelationsMixin:
+    tenant_relations = {}
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        # Standalone serializer use has no request; API serializers always have one.
+        if request is not None:
+            profile = getattr(request.user, 'staff_profile', None)
+            for field_name, lookup in self.tenant_relations.items():
+                field = fields[field_name]
+                field.queryset = (field.queryset.filter(**{lookup: profile.restaurant_id})
+                                  if profile and profile.is_active else field.queryset.none())
+        return fields
 
 
 # ---------------------------------------------------------------------------
@@ -29,6 +46,14 @@ class RestaurantSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.logo:
+            ret['logo'] = instance.logo.url
+        if instance.menu_background:
+            ret['menu_background'] = instance.menu_background.url
+        return ret
+
 
 class RestaurantPublicSerializer(serializers.ModelSerializer):
     """Minimal info exposed to unauthenticated customers."""
@@ -38,8 +63,16 @@ class RestaurantPublicSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'description', 'logo', 'menu_background',
             'workflow_type', 'primary_color', 'secondary_color', 'accent_color',
-            'font_family', 'default_language', 'currency',
+            'font_family', 'default_language', 'currency', 'tax_rate',
         ]
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.logo:
+            ret['logo'] = instance.logo.url
+        if instance.menu_background:
+            ret['menu_background'] = instance.menu_background.url
+        return ret
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +86,7 @@ class CategorySerializer(serializers.ModelSerializer):
             'id', 'restaurant', 'name', 'description',
             'display_order', 'is_active', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'restaurant', 'created_at', 'updated_at']
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
@@ -73,7 +106,8 @@ class CategoryListSerializer(serializers.ModelSerializer):
 # MenuItem
 # ---------------------------------------------------------------------------
 
-class MenuTranslationSerializer(serializers.ModelSerializer):
+class MenuTranslationSerializer(TenantRelationsMixin, serializers.ModelSerializer):
+    tenant_relations = {'menu_item': 'category__restaurant_id'}
     class Meta:
         model = MenuTranslation
         fields = ['id', 'menu_item', 'language_code', 'translated_name', 'translated_description']
@@ -95,7 +129,8 @@ class MenuItemSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class MenuItemWriteSerializer(serializers.ModelSerializer):
+class MenuItemWriteSerializer(TenantRelationsMixin, serializers.ModelSerializer):
+    tenant_relations = {'category': 'restaurant_id'}
     """For creating/updating menu items (no nested translations)."""
 
     class Meta:
@@ -112,7 +147,8 @@ class MenuItemWriteSerializer(serializers.ModelSerializer):
 # Recipe
 # ---------------------------------------------------------------------------
 
-class RecipeSerializer(serializers.ModelSerializer):
+class RecipeSerializer(TenantRelationsMixin, serializers.ModelSerializer):
+    tenant_relations = {'menu_item': 'category__restaurant_id'}
     menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)
 
     class Meta:
@@ -136,7 +172,13 @@ class TableSerializer(serializers.ModelSerializer):
             'id', 'restaurant', 'number', 'name', 'capacity',
             'qr_code', 'is_active', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'qr_code', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'restaurant', 'qr_code', 'created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.qr_code:
+            ret['qr_code'] = instance.qr_code.url
+        return ret
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +189,7 @@ class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Token
         fields = ['id', 'restaurant', 'number', 'status', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'number', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'restaurant', 'number', 'created_at', 'updated_at']
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +203,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             'id', 'restaurant', 'phone_number', 'name',
             'loyalty_points', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'loyalty_points', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'restaurant', 'loyalty_points', 'created_at', 'updated_at']
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +211,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)
+    menu_item_name = serializers.CharField(read_only=True)
     menu_item_image = serializers.ImageField(source='menu_item.image', read_only=True)
 
     class Meta:
@@ -184,7 +226,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderItemWriteSerializer(serializers.Serializer):
     """Used inside OrderCreateSerializer for nested order item creation."""
     menu_item = serializers.IntegerField()
-    quantity = serializers.IntegerField(min_value=1, default=1)
+    quantity = serializers.IntegerField(min_value=1, max_value=100, default=1)
     notes = serializers.CharField(required=False, allow_blank=True, default='')
 
 
@@ -205,6 +247,12 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'total_amount', 'created_at', 'updated_at']
 
 
+class PublicOrderSerializer(OrderSerializer):
+    class Meta(OrderSerializer.Meta):
+        fields = [field for field in OrderSerializer.Meta.fields
+                  if field not in ('customer', 'customer_phone')]
+
+
 class OrderCreateSerializer(serializers.Serializer):
     """
     Customer-facing order creation.  Accepts restaurant slug, table/token
@@ -213,13 +261,19 @@ class OrderCreateSerializer(serializers.Serializer):
     restaurant_slug = serializers.SlugField()
     table_number = serializers.IntegerField(required=False, allow_null=True)
     phone_number = serializers.CharField(max_length=17)
-    customer_name = serializers.CharField(max_length=200, required=False, default='')
+    customer_name = serializers.CharField(max_length=200, required=False, default='', allow_blank=True)
     notes = serializers.CharField(required=False, allow_blank=True, default='')
     items = OrderItemWriteSerializer(many=True)
 
+    def validate_phone_number(self, value):
+        import re
+        value = re.sub(r'[\s()\-]', '', value)
+        phone_regex(value)
+        return value
+
     def validate_items(self, value):
-        if not value:
-            raise serializers.ValidationError("At least one item is required.")
+        if not value or len(value) > 100:
+            raise serializers.ValidationError("Provide between 1 and 100 items.")
         return value
 
 
@@ -252,8 +306,8 @@ class BillSerializer(serializers.ModelSerializer):
 
 class BillCreateSerializer(serializers.Serializer):
     """Create a bill from order IDs."""
-    order_ids = serializers.ListField(child=serializers.UUIDField())
-    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
+    order_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=False, max_length=100)
+    discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), min_value=Decimal('0.00'))
     notes = serializers.CharField(required=False, allow_blank=True, default='')
 
 
@@ -283,18 +337,18 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             'id', 'user', 'restaurant', 'role', 'phone_number',
             'is_active', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'restaurant', 'created_at', 'updated_at']
 
 
 class StaffCreateSerializer(serializers.Serializer):
     """Create a new staff member (User + StaffProfile)."""
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(min_length=8, write_only=True)
-    first_name = serializers.CharField(max_length=150, required=False, default='')
-    last_name = serializers.CharField(max_length=150, required=False, default='')
-    email = serializers.EmailField(required=False, default='')
+    first_name = serializers.CharField(max_length=150, required=False, default='', allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, default='', allow_blank=True)
+    email = serializers.EmailField(required=False, default='', allow_blank=True)
     role = serializers.ChoiceField(choices=StaffProfile.ROLE_CHOICES)
-    phone_number = serializers.CharField(max_length=17, required=False, default='')
+    phone_number = serializers.CharField(max_length=17, required=False, default='', allow_blank=True)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -321,10 +375,10 @@ class RestaurantSignupSerializer(serializers.Serializer):
     # Owner account fields
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(min_length=8, write_only=True)
-    first_name = serializers.CharField(max_length=150, required=False, default='')
-    last_name = serializers.CharField(max_length=150, required=False, default='')
+    first_name = serializers.CharField(max_length=150, required=False, default='', allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, default='', allow_blank=True)
     email = serializers.EmailField()
-    phone_number = serializers.CharField(max_length=17, required=False, default='')
+    phone_number = serializers.CharField(max_length=17, required=False, default='', allow_blank=True)
 
     # Restaurant fields
     restaurant_name = serializers.CharField(max_length=200)

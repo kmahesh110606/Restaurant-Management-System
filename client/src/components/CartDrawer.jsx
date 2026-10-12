@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+import useDialog from './useDialog';
 /**
  * CartDrawer â€” Slide-in cart panel from the right.
  * Glassmorphic panel with item list, quantity controls, subtotal, and checkout CTA.
@@ -15,15 +17,30 @@ import { useCart } from '../contexts/CartContext';
 export default function CartDrawer({ isOpen, onClose, onCheckout, currency = 'â‚¹' }) {
   const { items, updateQuantity, removeItem, totalItems, totalAmount } = useCart();
 
+  const dialogRef = useDialog(isOpen, onClose);
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div className="absolute inset-0 glass-overlay animate-overlay" onClick={onClose} />
+      {/* Backdrop with dark frosted blur */}
+      <div
+        className="fixed inset-0 bg-slate-950/45 backdrop-blur-md transition-opacity duration-200 animate-overlay"
+        style={{
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+        }}
+        onClick={onClose}
+      />
 
-      {/* Drawer */}
-      <div className="absolute top-0 right-0 h-full w-full max-w-md glass-modal rounded-l-3xl rounded-r-none flex flex-col animate-drawer">
+      {/* Drawer with Liquid Frosted Glass */}
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Your cart" tabIndex={-1}
+        className="absolute top-0 right-0 h-full w-full max-w-md bg-white/92 backdrop-blur-2xl border-l border-white/80 rounded-l-3xl rounded-r-none flex flex-col shadow-2xl animate-drawer"
+        style={{
+          boxShadow: '-20px 0 50px -10px rgba(15, 23, 42, 0.2), inset 1.5px 0 1px 0 rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(36px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(36px) saturate(190%)',
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100/60">
           <div className="flex items-center gap-2.5">
@@ -32,7 +49,7 @@ export default function CartDrawer({ isOpen, onClose, onCheckout, currency = 'â‚
             <span className="badge badge-role text-[10px]">{totalItems} items</span>
           </div>
           <button
-            onClick={onClose}
+            aria-label="Close cart" onClick={onClose}
             className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 transition-colors"
           >
             <DismissRegular fontSize={18} />
@@ -119,6 +136,6 @@ export default function CartDrawer({ isOpen, onClose, onCheckout, currency = 'â‚
           </div>
         )}
       </div>
-    </div>
+    </div>, document.body
   );
 }

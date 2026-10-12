@@ -6,6 +6,8 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
+import { cartReducer, calculateTotals } from './cartState';
+
 const CartContext = createContext(null);
 
 function getStorageKey(slug) {
@@ -13,91 +15,47 @@ function getStorageKey(slug) {
 }
 
 export function CartProvider({ children }) {
-  const [items, setItems] = useState([]);
-  const [restaurantSlug, setRestaurantSlug] = useState(null);
-
-  // Load cart from localStorage when slug changes
+  const [cart, setCart] = useState({ slug: null, items: [] });
+  const { slug: restaurantSlug, items } = cart;
+  const setItems = useCallback((update) => {
+    setCart((current) => ({ ...current, items: typeof update === 'function' ? update(current.items) : update }));
+  }, []);
+  const setRestaurantSlug = useCallback((slug) => {
+    setCart((current) => {
+      if (current.slug === slug) return current;
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem(getStorageKey(slug)) || '[]'); } catch { /* An invalid saved cart starts empty. */ }
+      return { slug, items: Array.isArray(saved) ? saved.filter((item) => item && Number.isInteger(item.quantity) && item.quantity > 0 && Number.isFinite(item.price)) : [] };
+    });
+  }, []);
   useEffect(() => {
     if (restaurantSlug) {
-      try {
-        const saved = localStorage.getItem(getStorageKey(restaurantSlug));
-        if (saved) {
-          setItems(JSON.parse(saved));
-        } else {
-          setItems([]);
-        }
-      } catch {
-        setItems([]);
-      }
-    }
-  }, [restaurantSlug]);
-
-  // Persist cart whenever items change
-  useEffect(() => {
-    if (restaurantSlug) {
-      try {
-        localStorage.setItem(getStorageKey(restaurantSlug), JSON.stringify(items));
-      } catch {
-        // Ignore storage errors
-      }
+      try { localStorage.setItem(getStorageKey(restaurantSlug), JSON.stringify(items)); } catch { /* Ordering remains available without persistence. */ }
     }
   }, [items, restaurantSlug]);
 
-  const addItem = useCallback((menuItem, quantity = 1, notes = '') => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === menuItem.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === menuItem.id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i
-        );
-      }
-      return [
-        ...prev,
-        {
-          id: menuItem.id,
-          name: menuItem.name,
-          price: parseFloat(menuItem.price),
-          image: menuItem.image,
-          quantity,
-          notes,
-          is_vegetarian: menuItem.is_vegetarian,
-          is_vegan: menuItem.is_vegan,
-        },
-      ];
-    });
-  }, []);
-
+  const dispatch = useCallback((action) => {
+    setItems((previous) => cartReducer(previous, action));
+  }, [setItems]);
+  const addItem = useCallback((item, quantity = 1, notes = '') => {
+    dispatch({ type: 'ADD_ITEM', payload: { item, quantity, notes } });
+  }, [dispatch]);
   const updateQuantity = useCallback((itemId, quantity) => {
-    if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.id !== itemId));
-    } else {
-      setItems((prev) =>
-        prev.map((i) => (i.id === itemId ? { ...i, quantity } : i))
-      );
-    }
-  }, []);
-
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { itemId, quantity } });
+  }, [dispatch]);
   const updateItemNotes = useCallback((itemId, notes) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, notes } : i))
-    );
-  }, []);
-
+    dispatch({ type: 'UPDATE_NOTES', payload: { itemId, notes } });
+  }, [dispatch]);
   const removeItem = useCallback((itemId) => {
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
-  }, []);
-
+    dispatch({ type: 'REMOVE_ITEM', payload: { itemId } });
+  }, [dispatch]);
   const clearCart = useCallback(() => {
-    setItems([]);
+    dispatch({ type: 'CLEAR_CART' });
     if (restaurantSlug) {
-      localStorage.removeItem(getStorageKey(restaurantSlug));
+      try { localStorage.removeItem(getStorageKey(restaurantSlug)); } catch { /* Cart still clears without storage. */ }
     }
-  }, [restaurantSlug]);
-
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  }, [dispatch, restaurantSlug]);
+  const { totalItems, totalAmount } = calculateTotals(items);
 
   return (
     <CartContext.Provider

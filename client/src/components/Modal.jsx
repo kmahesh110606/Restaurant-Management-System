@@ -1,71 +1,19 @@
-/**
- * Modal — Glassmorphic modal dialog with backdrop blur.
- * Supports configurable sizes, close on backdrop/escape, and Framer Motion animations.
- */
-
-import { useEffect, useCallback } from 'react';
+import { useId } from 'react';
+import { createPortal } from 'react-dom';
 import { DismissRegular } from '@fluentui/react-icons';
+import useDialog from './useDialog';
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md', showClose = true }) {
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape' && onClose) onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, handleKeyDown]);
-
+  const titleId = useId();
+  const ref = useDialog(isOpen, onClose);
   if (!isOpen) return null;
-
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-[90vw]',
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 glass-overlay animate-overlay"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div
-        className={`relative glass-modal w-full ${sizeClasses[size]} max-h-[85vh] overflow-y-auto p-6 animate-scale-in`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        {(title || showClose) && (
-          <div className="flex items-center justify-between mb-5">
-            {title && (
-              <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-            )}
-            {showClose && (
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 transition-colors ml-auto"
-                aria-label="Close"
-              >
-                <DismissRegular fontSize={18} />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Content */}
+  const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-[90vw]' };
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }} style={{ background: 'rgba(15,23,42,.45)' }}>
+      <section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} aria-label={title ? undefined : 'Dialog'} className={`bg-white rounded-xl p-6 w-full ${sizes[size] || sizes.md} max-h-[85dvh] overflow-y-auto shadow-xl`}>
+        {(title || showClose) && <div className="flex items-center justify-between gap-4 mb-5">{title && <h2 id={titleId} className="text-lg font-bold text-gray-900">{title}</h2>}{showClose && <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 ml-auto" aria-label="Close dialog"><DismissRegular fontSize={20} /></button>}</div>}
         {children}
-      </div>
-    </div>
+      </section>
+    </div>, document.body,
   );
 }

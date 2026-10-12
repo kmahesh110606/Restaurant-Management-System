@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 
 export default function KitchenDashboard() {
   const [orders, setOrders] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef(null);
 
@@ -31,7 +32,7 @@ export default function KitchenDashboard() {
         const active = results.filter((o) => ['pending', 'confirmed', 'preparing'].includes(o.status));
         setOrders(active);
       })
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -51,6 +52,8 @@ export default function KitchenDashboard() {
     }
   };
 
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -63,20 +66,7 @@ export default function KitchenDashboard() {
     <div className="animate-fade-in space-y-6 pb-12 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
-            style={{ background: 'var(--color-primary)' }}
-          >
-            <BowlSaladRegular fontSize={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Kitchen Order Tickets</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              {orders.length} active ticket{orders.length !== 1 ? 's' : ''} in the preparation pipeline
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">Kitchen Order Tickets</h1>
 
         <button
           onClick={fetchOrders}

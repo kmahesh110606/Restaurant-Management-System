@@ -23,21 +23,44 @@ import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+export const resolveQrUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://localhost/media/')) {
+    return url.replace('http://localhost/media/', '/media/');
+  }
+  if (url.startsWith('http://localhost:8000/media/')) {
+    return url.replace('http://localhost:8000/media/', '/media/');
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return parsed.pathname;
+      }
+    } catch {
+      // ignore
+    }
+    return url;
+  }
+  return url.startsWith('/') ? url : `/${url}`;
+};
+
 export default function TableManagement() {
   const [tables, setTables] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [qrModal, setQrModal] = useState(null);
 
-  const [form, setForm] = useState({ number: '', name: '', capacity: 4 });
+  const [form, setForm] = useState({ number: '', name: '', capacity: 4, is_active: true });
 
   const fetchData = () => {
     setLoading(true);
     getTables()
       .then(({ data }) => setTables(data.results || data || []))
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -46,10 +69,10 @@ export default function TableManagement() {
   const openModal = (table = null) => {
     if (table) {
       setEditing(table);
-      setForm({ number: table.number, name: table.name || '', capacity: table.capacity });
+      setForm({ number: table.number, name: table.name || '', capacity: table.capacity, is_active: table.is_active });
     } else {
       setEditing(null);
-      setForm({ number: '', name: '', capacity: 4 });
+      setForm({ number: '', name: '', capacity: 4, is_active: true });
     }
     setModalOpen(true);
   };
@@ -80,8 +103,8 @@ export default function TableManagement() {
       await deleteTable(id);
       toast.success('Table deleted.');
       fetchData();
-    } catch {
-      toast.error('Failed to delete table.');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete table.');
     }
   };
 
@@ -96,12 +119,17 @@ export default function TableManagement() {
   };
 
   const downloadQR = (qrUrl, tableName) => {
-    const url = qrUrl.startsWith('http') ? qrUrl : `${API_BASE}${qrUrl}`;
+    const url = resolveQrUrl(qrUrl);
+    if (!url) return;
     const a = document.createElement('a');
     a.href = url;
     a.download = `qr_${tableName}.png`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
   };
+
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
 
   if (loading) {
     return (
@@ -114,25 +142,12 @@ export default function TableManagement() {
   return (
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-white/80">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-          >
-            <TableSimpleRegular fontSize={26} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Tables & QR Setup</h1>
-              <span className="badge badge-ready font-bold text-xs py-1 px-3">
-                {tables.length} Active Tables
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Configure floor seating, capacities, and customer self-ordering QR codes
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Tables & QR Setup</h1>
+          <span className="badge badge-ready font-bold text-xs py-1 px-3">
+            {tables.length} Active Tables
+          </span>
         </div>
 
         <button
@@ -156,11 +171,7 @@ export default function TableManagement() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
           {tables.map((tbl) => {
-            const qrUrl = tbl.qr_code
-              ? tbl.qr_code.startsWith('http')
-                ? tbl.qr_code
-                : `${API_BASE}${tbl.qr_code}`
-              : null;
+            const qrUrl = resolveQrUrl(tbl.qr_code);
 
             return (
               <div
@@ -191,7 +202,7 @@ export default function TableManagement() {
                   </p>
 
                   {/* QR Preview thumbnail */}
-                  {qrUrl && (
+                  {qrUrl ? (
                     <div className="mt-4 p-4 rounded-2xl bg-white/70 border border-white/80 shadow-xs flex items-center justify-center">
                       <img
                         src={qrUrl}
@@ -199,6 +210,16 @@ export default function TableManagement() {
                         className="w-28 h-28 object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
                         onClick={() => setQrModal(tbl)}
                       />
+                    </div>
+                  ) : (
+                    <div className="mt-4 p-4 rounded-2xl bg-gray-50/80 border border-dashed border-gray-200 text-center">
+                      <p className="text-xs text-slate-500 font-medium mb-2">No QR generated</p>
+                      <button
+                        onClick={() => handleRegenerateQR(tbl.id)}
+                        className="btn btn-secondary btn-sm text-xs py-1 px-3"
+                      >
+                        Generate QR
+                      </button>
                     </div>
                   )}
                 </div>
@@ -252,14 +273,14 @@ export default function TableManagement() {
           title={editing ? `Edit Table ${editing.number}` : 'Add New Dining Table'}
           size="sm"
         >
-          <form onSubmit={handleSubmit} className="space-y-4 p-2">
+          <form onSubmit={handleSubmit} className="space-y-4 p-2"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({ ...form, is_active: event.target.checked })} /> Available for ordering</label>
             <div>
               <label className="form-label">Table Number *</label>
               <input
                 required
                 value={form.number}
                 onChange={(e) => setForm({ ...form, number: e.target.value })}
-                placeholder="e.g. 5 or A1"
+                placeholder="e.g. 5"
                 className="input"
               />
             </div>
@@ -318,11 +339,7 @@ export default function TableManagement() {
           <div className="p-4 text-center space-y-4">
             <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs inline-block">
               <img
-                src={
-                  qrModal.qr_code?.startsWith('http')
-                    ? qrModal.qr_code
-                    : `${API_BASE}${qrModal.qr_code}`
-                }
+                src={resolveQrUrl(qrModal.qr_code)}
                 alt={`Table ${qrModal.number}`}
                 className="w-48 h-48 object-contain mx-auto"
               />

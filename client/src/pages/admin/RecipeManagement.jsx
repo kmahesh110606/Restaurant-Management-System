@@ -20,11 +20,13 @@ import { getMenuItems } from '../../api/menu';
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function RecipeManagement() {
   const [recipes, setRecipes] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -47,7 +49,7 @@ export default function RecipeManagement() {
         setRecipes(recRes.data.results || recRes.data || []);
         setMenuItems(itemRes.data.results || itemRes.data || []);
       })
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -111,6 +113,8 @@ export default function RecipeManagement() {
     }
   };
 
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -123,20 +127,7 @@ export default function RecipeManagement() {
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-purple-500/20"
-            style={{ background: '#7C3AED' }}
-          >
-            <BookOpenRegular fontSize={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Kitchen Recipes</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Internal preparation guides, ingredient quantities, and cooking methods
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">Kitchen Recipes</h1>
 
         <button
           onClick={() => openModal()}
@@ -235,18 +226,16 @@ export default function RecipeManagement() {
           <form onSubmit={handleSubmit} className="space-y-4 p-2">
             <div>
               <label className="form-label">Linked Menu Item *</label>
-              <select
+              <CustomSelect
                 required
+                options={menuItems.map((m) => ({
+                  value: m.id,
+                  label: `${m.name} (₹${parseFloat(m.price).toFixed(0)})`,
+                }))}
                 value={form.menu_item}
-                onChange={(e) => setForm({ ...form, menu_item: e.target.value })}
-                className="input"
-              >
-                {menuItems.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} (₹{parseFloat(m.price).toFixed(0)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setForm({ ...form, menu_item: val })}
+                placeholder="Choose linked menu item..."
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

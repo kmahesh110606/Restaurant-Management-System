@@ -1,11 +1,12 @@
 """
-Restaurant Management System — Models
+Restaurant Management Service — Models
 
 Multi-tenant architecture: every model is scoped to a Restaurant via FK.
 Data isolation is enforced at the queryset level in views.
 """
 
 import uuid
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, RegexValidator
@@ -103,7 +104,7 @@ class MenuItem(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, default='')
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     image = models.ImageField(upload_to='menu_items/', blank=True, null=True)
     is_available = models.BooleanField(default=True)
     is_vegetarian = models.BooleanField(default=False)
@@ -265,6 +266,8 @@ class Order(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
+    request_key = models.UUIDField(null=True, blank=True, editable=False)
+    request_fingerprint = models.CharField(max_length=64, blank=True, default='', editable=False)
     order_type = models.CharField(max_length=10, choices=ORDER_TYPE_CHOICES)
     table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     token = models.ForeignKey(Token, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
@@ -277,6 +280,7 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [models.UniqueConstraint(fields=['restaurant', 'request_key'], name='unique_restaurant_order_request')]
 
     def __str__(self):
         return f"Order {str(self.id)[:8]} — {self.get_status_display()}"
@@ -291,7 +295,8 @@ class OrderItem(models.Model):
     """Line item within an order."""
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, related_name='order_items')
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT, related_name='order_items')
+    menu_item_name = models.CharField(max_length=200, blank=True, default='')
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
@@ -306,6 +311,8 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         """Auto-compute subtotal on save."""
+        if not self.menu_item_name:
+            self.menu_item_name = self.menu_item.name
         self.subtotal = self.unit_price * self.quantity
         super().save(*args, **kwargs)
 
@@ -356,7 +363,7 @@ class Bill(models.Model):
         from decimal import Decimal as D
         self.subtotal = sum(order.total_amount for order in self.orders.all())
         tax_rate = D(str(self.restaurant.tax_rate))
-        self.tax_amount = self.subtotal * (tax_rate / D('100'))
+        self.tax_amount = (self.subtotal * (tax_rate / D('100'))).quantize(D('0.01'))
         self.final_amount = self.subtotal + self.tax_amount - self.discount_amount
         self.save(update_fields=['subtotal', 'tax_amount', 'final_amount'])
 
@@ -391,3 +398,36 @@ class StaffProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} — {self.get_role_display()}"
+
+
+# ---------------------------------------------------------------------------
+# Platform Safety / Audit Logs
+# ---------------------------------------------------------------------------
+
+class SafetyLog(models.Model):
+    """
+    Platform audit and safety log for security, authentication events,
+    and administrative interventions across all tenants.
+    """
+    SEVERITY_CHOICES = [
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('critical', 'Critical'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event_type = models.CharField(max_length=60)
+    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='info')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='safety_logs')
+    username = models.CharField(max_length=150, blank=True, default='')
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.SET_NULL, null=True, blank=True, related_name='safety_logs')
+    ip_address = models.CharField(max_length=45, blank=True, default='')
+    description = models.TextField()
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.severity.upper()}] {self.event_type} - {self.description[:40]}"

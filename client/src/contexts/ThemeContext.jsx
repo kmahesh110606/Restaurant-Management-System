@@ -4,7 +4,7 @@
  * Falls back to sensible defaults if restaurant has no custom branding.
  */
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api/client';
 
 const DEFAULT_THEME = {
@@ -31,13 +31,31 @@ function lightenColor(hex, percent) {
 
 function darkenColor(hex, percent) {
   const num = parseInt(hex.replace('#', ''), 16);
-  const r = Math.max(0, Math.round((num >> 16) * (1 - percent)));
+  const r = Math.max(0, Math.round(((num >> 16) & 0xFF) * (1 - percent)));
   const g = Math.max(0, Math.round(((num >> 8) & 0x00FF) * (1 - percent)));
   const b = Math.max(0, Math.round((num & 0x0000FF) * (1 - percent)));
   return `#${(0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
+function hexToRgb(hex) {
+  if (!hex) return '234, 88, 12';
+  const clean = hex.replace('#', '');
+  if (clean.length === 3) {
+    const r = parseInt(clean[0] + clean[0], 16);
+    const g = parseInt(clean[1] + clean[1], 16);
+    const b = parseInt(clean[2] + clean[2], 16);
+    return `${r}, ${g}, ${b}`;
+  }
+  const num = parseInt(clean, 16);
+  if (isNaN(num)) return '234, 88, 12';
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `${r}, ${g}, ${b}`;
+}
+
 export function ThemeProvider({ children }) {
+  const requestVersion = useRef(0);
   const [theme, setTheme] = useState(DEFAULT_THEME);
   const [restaurantConfig, setRestaurantConfig] = useState(null);
   const [themeLoading, setThemeLoading] = useState(false);
@@ -47,9 +65,11 @@ export function ThemeProvider({ children }) {
    */
   const loadRestaurantTheme = useCallback(async (slug) => {
     if (!slug) return;
+    const version = ++requestVersion.current;
     setThemeLoading(true);
     try {
       const { data } = await api.get(`/restaurants/${slug}/public/`);
+      if (version !== requestVersion.current) return;
       setRestaurantConfig(data);
       setTheme((prev) => ({
         ...prev,
@@ -61,9 +81,11 @@ export function ThemeProvider({ children }) {
         currency: data.currency || DEFAULT_THEME.currency,
       }));
     } catch {
-      // Keep defaults if restaurant not found
+      if (version !== requestVersion.current) return;
+      setRestaurantConfig(null);
+      setTheme(DEFAULT_THEME);
     } finally {
-      setThemeLoading(false);
+      if (version === requestVersion.current) setThemeLoading(false);
     }
   }, []);
 
@@ -86,14 +108,17 @@ export function ThemeProvider({ children }) {
     const primary100 = lightenColor(primary, 0.85);
 
     root.style.setProperty('--color-primary', primary);
+    root.style.setProperty('--color-primary-rgb', hexToRgb(primary));
     root.style.setProperty('--color-primary-light', primaryLight);
     root.style.setProperty('--color-primary-dark', primaryDark);
     root.style.setProperty('--color-primary-50', primary50);
     root.style.setProperty('--color-primary-100', primary100);
     root.style.setProperty('--color-secondary', secondary);
+    root.style.setProperty('--color-secondary-rgb', hexToRgb(secondary));
     root.style.setProperty('--color-secondary-light', lightenColor(secondary, 0.2));
     root.style.setProperty('--color-secondary-dark', darkenColor(secondary, 0.15));
     root.style.setProperty('--color-accent', accent);
+    root.style.setProperty('--color-accent-rgb', hexToRgb(accent));
     root.style.setProperty('--color-accent-light', lightenColor(accent, 0.2));
     root.style.setProperty('--color-accent-dark', darkenColor(accent, 0.15));
 
@@ -104,17 +129,6 @@ export function ThemeProvider({ children }) {
     // Font family
     root.style.setProperty('--font-family', `'${fontFamily}', system-ui, -apple-system, sans-serif`);
 
-    // Load Google Font if non-default
-    if (fontFamily && fontFamily !== 'Plus Jakarta Sans') {
-      const existingLink = document.querySelector(`link[data-font="${fontFamily}"]`);
-      if (!existingLink) {
-        const link = document.createElement('link');
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800&display=swap`;
-        link.rel = 'stylesheet';
-        link.setAttribute('data-font', fontFamily);
-        document.head.appendChild(link);
-      }
-    }
   }, [theme]);
 
   const updateTheme = useCallback((patch) => {
@@ -122,6 +136,8 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const resetTheme = useCallback(() => {
+    requestVersion.current += 1;
+    setThemeLoading(false);
     setTheme(DEFAULT_THEME);
     setRestaurantConfig(null);
   }, []);

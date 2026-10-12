@@ -18,10 +18,12 @@ import { getStaff, createStaff, deleteStaff } from '../../api/staff';
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 export default function StaffManagement() {
   const [staff, setStaff] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export default function StaffManagement() {
     setLoading(true);
     getStaff()
       .then(({ data }) => setStaff(data.results || data || []))
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -81,6 +83,8 @@ export default function StaffManagement() {
     }
   };
 
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -100,20 +104,7 @@ export default function StaffManagement() {
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-blue-500/20"
-            style={{ background: '#2563EB' }}
-          >
-            <PeopleTeamRegular fontSize={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Staff & Roles</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Manage operational personnel and role-based permissions
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">Staff Directory</h1>
 
         <button
           onClick={() => setModalOpen(true)}
@@ -152,7 +143,8 @@ export default function StaffManagement() {
                     label: s.role,
                     class: 'bg-gray-100 text-gray-700',
                   };
-                  const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.username;
+                  const account = s.user || s;
+                  const fullName = `${account.first_name || ''} ${account.last_name || ''}`.trim() || account.username || 'Staff';
 
                   return (
                     <tr key={s.id}>
@@ -168,7 +160,7 @@ export default function StaffManagement() {
                         </div>
                       </td>
                       <td className="font-mono text-xs font-bold text-gray-600">
-                        @{s.username}
+                        @{account.username}
                       </td>
                       <td>
                         <span className={`badge border font-bold text-xs ${roleConfig.class}`}>
@@ -245,7 +237,7 @@ export default function StaffManagement() {
                   required
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Min. 6 characters"
+                  placeholder="Min. 8 characters"
                   className="input"
                 />
               </div>
@@ -254,16 +246,16 @@ export default function StaffManagement() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="form-label">Operational Role *</label>
-                <select
+                <CustomSelect
+                  options={[
+                    { value: 'waiter', label: 'Waiter / Floor Server' },
+                    { value: 'kitchen', label: 'Kitchen Staff / Chef' },
+                    { value: 'biller', label: 'Cashier / Biller' },
+                    { value: 'admin', label: 'Assistant Administrator' },
+                  ]}
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="input"
-                >
-                  <option value="waiter">Waiter / Floor Server</option>
-                  <option value="kitchen">Kitchen Staff / Chef</option>
-                  <option value="biller">Cashier / Biller</option>
-                  <option value="admin">Assistant Administrator</option>
-                </select>
+                  onChange={(val) => setForm({ ...form, role: val })}
+                />
               </div>
 
               <div>

@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { CalendarRegular } from '@fluentui/react-icons';
+import LiquidPills from './ui/LiquidPills';
 
 const PRESETS = [
   { label: 'Today', key: 'today' },
@@ -64,22 +65,16 @@ export default function DateRangePicker({ onChange, className = '' }) {
   };
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
-      <CalendarRegular fontSize={16} className="text-gray-400 hidden sm:block" />
+    <div className={`flex flex-wrap items-center gap-2.5 ${className}`}>
+      <CalendarRegular fontSize={16} className="text-slate-400 hidden sm:block" />
 
-      {PRESETS.map((preset) => (
-        <button
-          key={preset.key}
-          onClick={() => handlePresetClick(preset.key)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activePreset === preset.key
-              ? 'bg-[var(--color-primary)] text-white shadow-sm'
-              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          {preset.label}
-        </button>
-      ))}
+      <LiquidPills
+        items={PRESETS.map((p) => ({ label: p.label, value: p.key }))}
+        value={activePreset}
+        onChange={handlePresetClick}
+        layoutId="date-range-pills"
+        size="sm"
+      />
 
       {showCustom && (
         <div className="flex items-center gap-2 animate-fade-in">

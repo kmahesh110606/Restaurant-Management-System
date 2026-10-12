@@ -1,8 +1,4 @@
-/**
- * LoginPage — iOS 28 Liquid Glass Staff Authentication.
- * Features ambient fluid mesh backdrop, frosted glass card,
- * safe icon spacing, and tactile micro-interactions.
- */
+
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -15,7 +11,7 @@ import {
   ArrowRightRegular,
 } from '@fluentui/react-icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { GoogleLogin } from '@react-oauth/google';
+import GoogleAuthButton from '../../components/GoogleAuthButton';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -36,9 +32,9 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(username.trim(), password);
+      const data = await login(username.trim(), password);
       toast.success('Welcome back!');
-      navigate(getDefaultPath());
+      navigate(getDefaultPath(data?.role, data?.user));
     } catch (err) {
       const message = err.response?.data?.detail || 'Invalid credentials';
       toast.error(message);
@@ -47,11 +43,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleSuccess = async (credential) => {
     try {
-      await loginWithGoogle(credentialResponse.credential);
+      const data = await loginWithGoogle(credential);
       toast.success('Welcome back!');
-      navigate(getDefaultPath());
+      navigate(getDefaultPath(data?.role, data?.user));
     } catch (err) {
       const message = err.response?.data?.detail || 'Google login failed';
       toast.error(message);
@@ -74,9 +70,6 @@ export default function LoginPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Staff Portal
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            Sign in to access your operations dashboard
-          </p>
         </div>
 
         {/* Liquid Glass Login Card */}
@@ -116,7 +109,6 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOffRegular fontSize={18} /> : <EyeRegular fontSize={18} />}
@@ -142,24 +134,19 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && <>
           {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-slate-200/80" />
-            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or continue with</span>
+            <span className="text-xs text-slate-400 font-medium">or continue with</span>
             <div className="flex-1 h-px bg-slate-200/80" />
           </div>
 
           {/* Google Login */}
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => toast.error('Google login failed')}
-              shape="pill"
-              size="large"
-              text="continue_with"
-              width="100%"
-            />
-          </div>
+          <GoogleAuthButton
+            onSuccess={handleGoogleSuccess}
+            text="Continue with Google"
+          /></>}
         </div>
 
         {/* Signup Link */}

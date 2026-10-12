@@ -6,12 +6,14 @@ Uses DRF's DefaultRouter for ViewSets + manual paths for auth and analytics.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from rest_framework_simplejwt.views import TokenRefreshView
+
 from restaurant.views import (
     RestaurantViewSet, CategoryViewSet, MenuItemViewSet,
     MenuTranslationViewSet, RecipeViewSet,
     TableViewSet, TokenViewSet, CustomerViewSet,
     OrderViewSet, BillViewSet,
-    StaffProfileViewSet, AnalyticsViewSet,
+    StaffProfileViewSet, AnalyticsViewSet, PlatformAdminViewSet,
     staff_login, staff_me, google_login, restaurant_signup,
 )
 
@@ -28,6 +30,7 @@ router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'bills', BillViewSet, basename='bill')
 router.register(r'staff', StaffProfileViewSet, basename='staff')
 router.register(r'analytics', AnalyticsViewSet, basename='analytics')
+router.register(r'platform', PlatformAdminViewSet, basename='platform')
 
 urlpatterns = [
     # Auth
@@ -35,6 +38,7 @@ urlpatterns = [
     path('auth/me/', staff_me, name='staff-me'),
     path('auth/google/', google_login, name='google-login'),
     path('auth/signup/', restaurant_signup, name='restaurant-signup'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
 
     # Router URLs
     path('', include(router.urls)),

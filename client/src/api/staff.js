@@ -1,7 +1,7 @@
-import api from './client'; // Import custom Axios HTTP client instance
+import api, { getCollection } from './client'; // Import custom Axios HTTP client instance
 
 export const getStaff = (params = {}) => // Export function to fetch list of restaurant staff members
-  api.get('/staff/', { params }); // Execute GET request to /staff/ with query filters
+  getCollection('/staff/', params); // Execute GET request to /staff/ with query filters
 
 export const createStaff = (data) => // Export function to create a new staff profile user account
   api.post('/staff/', data); // Execute POST request to /staff/ with user data

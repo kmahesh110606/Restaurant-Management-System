@@ -1,7 +1,7 @@
-import api from './client'; // Import custom Axios HTTP client instance
+import api, { getCollection } from './client'; // Import custom Axios HTTP client instance
 
 export const getTokens = (params = {}) => // Export function to fetch customer queue token entries
-  api.get('/tokens/', { params }); // Execute GET request to /tokens/ with query filters
+  getCollection('/tokens/', params); // Execute GET request to /tokens/ with query filters
 
 export const createToken = () => // Export function to generate a new customer queue token
   api.post('/tokens/', {}); // Execute POST request to /tokens/ endpoint

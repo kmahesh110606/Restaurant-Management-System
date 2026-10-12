@@ -1,5 +1,5 @@
 """
-Django signals for the Restaurant Management System.
+Django signals for the Restaurant Management Service.
 
 - Auto-generate QR codes for new tables.
 """  # Module docstring describing model signal receivers

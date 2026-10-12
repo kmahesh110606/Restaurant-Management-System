@@ -20,6 +20,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
+import LiquidPills from '../../components/ui/LiquidPills';
 import toast from 'react-hot-toast';
 
 export default function WaiterDashboard() {
@@ -27,6 +28,7 @@ export default function WaiterDashboard() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [tables, setTables] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ready'); // 'ready' | 'all'
   const intervalRef = useRef(null);
@@ -42,7 +44,7 @@ export default function WaiterDashboard() {
       setOrders(orderList);
       setTables(tableList);
     } catch (err) {
-      console.error('Failed to fetch waiter dashboard data', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -69,6 +71,8 @@ export default function WaiterDashboard() {
     ? readyOrders
     : orders.filter((o) => !['cancelled', 'served'].includes(o.status));
 
+  if (loadError) return <EmptyState title="Could not refresh orders" subtitle="The service queue could not be updated." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -81,51 +85,27 @@ export default function WaiterDashboard() {
     <div className="animate-fade-in space-y-8 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-500/20"
-            style={{ background: 'var(--color-secondary)' }}
-          >
-            <FoodRegular fontSize={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Waiter Service Terminal</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              {readyOrders.length} order{readyOrders.length !== 1 ? 's' : ''} ready to run to tables
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">Waiter Service</h1>
 
-        {/* Filter buttons */}
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1 bg-white p-1 rounded-2xl border border-gray-200 shadow-xs">
-            <button
-              onClick={() => setFilter('ready')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === 'ready'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Ready to Serve ({readyOrders.length})
-            </button>
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === 'all'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              All Active Tickets
-            </button>
-          </div>
+        {/* Filter pills & refresh */}
+        <div className="flex items-center gap-2.5">
+          <LiquidPills
+            items={[
+              { label: `Ready to Serve (${readyOrders.length})`, value: 'ready' },
+              { label: 'All Active Tickets', value: 'all' },
+            ]}
+            value={filter}
+            onChange={setFilter}
+            layoutId="waiter-filter-pill"
+            size="sm"
+          />
 
           <button
             onClick={fetchData}
-            className="btn btn-secondary px-3.5 py-2 text-xs font-bold gap-1.5"
+            className="btn btn-secondary min-h-[38px] px-3.5 font-bold shrink-0"
+            title="Refresh Orders"
           >
-            <ArrowClockwiseRegular fontSize={14} />
+            <ArrowClockwiseRegular fontSize={15} />
           </button>
         </div>
       </div>
@@ -248,10 +228,10 @@ export default function WaiterDashboard() {
                 <p className="text-[11px] text-gray-500 mt-0.5">Cap: {tbl.capacity} seats</p>
                 <div className="mt-2.5">
                   <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    className={`badge text-[10px] font-bold ${
                       tbl.is_occupied
-                        ? 'bg-orange-100 text-orange-800'
-                        : 'bg-emerald-50 text-emerald-700'
+                        ? 'badge-pending'
+                        : 'badge-ready'
                     }`}
                   >
                     {tbl.is_occupied ? 'Occupied' : 'Available'}

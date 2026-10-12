@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== Starting Restaurant Management System Backend ==="
+echo "=== Starting Restaurant Management Service Backend ==="
 
 echo "Waiting for database..."
 while ! python -c "
@@ -23,7 +23,6 @@ except Exception as e:
 done
 
 echo "Running migrations..."
-python manage.py makemigrations --no-input
 python manage.py migrate --no-input
 
 echo "Collecting static files..."

@@ -73,7 +73,13 @@ export function AuthProvider({ children }) {
     setRestaurant(null);
   }, []);
 
+  useEffect(() => {
+    window.addEventListener('rms-session-expired', logout);
+    return () => window.removeEventListener('rms-session-expired', logout);
+  }, [logout]);
+
   const isAuthenticated = !!user;
+  const isSuperuser = !!user?.is_superuser || role === 'platform_admin';
   const isAdmin = role === 'admin';
   const isWaiter = role === 'waiter';
   const isKitchen = role === 'kitchen';
@@ -83,15 +89,18 @@ export function AuthProvider({ children }) {
   /**
    * Get the default dashboard path based on the user's role.
    */
-  const getDefaultPath = useCallback(() => {
-    switch (role) {
+  const getDefaultPath = useCallback((customRole = null, customUser = null) => {
+    const effectiveRole = customRole !== null ? customRole : role;
+    const effectiveUser = customUser !== null ? customUser : user;
+    if (effectiveUser?.is_superuser || effectiveRole === 'platform_admin') return '/platform';
+    switch (effectiveRole) {
       case 'admin': return '/dashboard';
       case 'kitchen': return '/kitchen';
       case 'waiter': return '/waiter';
       case 'biller': return '/billing';
       default: return '/dashboard';
     }
-  }, [role]);
+  }, [role, user]);
 
   return (
     <AuthContext.Provider
@@ -102,6 +111,7 @@ export function AuthProvider({ children }) {
         restaurantSlug,
         loading,
         isAuthenticated,
+        isSuperuser,
         isAdmin,
         isWaiter,
         isKitchen,

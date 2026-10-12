@@ -22,6 +22,9 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+test-results/
+.test-tools/
+coverage.xml
 .mypy_cache/
 
 # Django specific

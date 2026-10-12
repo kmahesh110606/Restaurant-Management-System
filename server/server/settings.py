@@ -1,12 +1,13 @@
 """
 Django settings for server project.
 
-Multi-tenant Restaurant Management System.
+Multi-tenant Restaurant Management Service.
 All sensitive values are read from environment variables.
 """
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,6 +28,15 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+if not DEBUG:
+    if SECRET_KEY.startswith('django-insecure') or len(SECRET_KEY) < 50:
+        raise ImproperlyConfigured('Set a unique DJANGO_SECRET_KEY of at least 50 characters.')
+    if not os.environ.get('DB_NAME') or not os.environ.get('DB_PASSWORD') or os.environ.get('DB_PASSWORD') == 'rms_password':
+        raise ImproperlyConfigured('Production requires PostgreSQL and a non-default DB_PASSWORD.')
+    if not os.environ.get('DJANGO_ALLOWED_HOSTS') or '*' in ALLOWED_HOSTS:
+        raise ImproperlyConfigured('Set explicit production DJANGO_ALLOWED_HOSTS.')
+
 
 
 # ---------------------------------------------------------------------------
@@ -173,11 +183,12 @@ REST_FRAMEWORK = {
 # ---------------------------------------------------------------------------
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'CHECK_REVOKE_TOKEN': True,
 }
 
 
@@ -190,6 +201,8 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173',
 ).split(',')
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = (*default_headers, 'idempotency-key')
 CORS_ALLOW_CREDENTIALS = True
 
 
@@ -198,7 +211,9 @@ CORS_ALLOW_CREDENTIALS = True
 # ---------------------------------------------------------------------------
 
 if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_SSL_REDIRECT = True
+    if os.environ.get('TRUST_PROXY_HTTPS') == 'true':
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

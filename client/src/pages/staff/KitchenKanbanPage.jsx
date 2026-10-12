@@ -1,8 +1,6 @@
-/**
- * KitchenKanbanPage — Real-time Kanban board for kitchen and floor staff.
- * iOS 28 Liquid Glass aesthetic with multi-stage frosted glass columns,
- * tactile order cards, live audio alerts, and automated polling.
- */
+import EmptyState from '../../components/EmptyState';
+import { useAuth } from '../../contexts/AuthContext';
+
 
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -27,7 +25,11 @@ const COLUMNS = [
 ];
 
 export default function KitchenKanbanPage() {
+  const { role } = useAuth();
+  const canPrepare = role === 'admin' || role === 'kitchen';
+  const canServe = role === 'admin' || role === 'waiter';
   const [orders, setOrders] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const prevPendingCountRef = useRef(0);
@@ -50,17 +52,17 @@ export default function KitchenKanbanPage() {
           osc.frequency.value = 587.33; // D5
           osc.start();
           gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-          setTimeout(() => osc.stop(), 500);
+          setTimeout(() => { osc.stop(); audioCtx.close(); }, 500);
         } catch {
           // Audio playback allowed upon user interaction
         }
-        toast('New ticket received in kitchen!', { icon: '🔔' });
+        toast.success('New ticket received in kitchen');
       }
       prevPendingCountRef.current = pendingCount;
       setOrders(list);
       setLastRefreshed(new Date());
     } catch (err) {
-      console.error('Failed to fetch orders', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -82,6 +84,8 @@ export default function KitchenKanbanPage() {
     }
   };
 
+  if (loadError) return <EmptyState title="Could not refresh orders" subtitle="The service queue could not be updated." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-32">
@@ -93,29 +97,11 @@ export default function KitchenKanbanPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-white/80">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
-          >
-            <BowlSaladRegular fontSize={26} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Live Kitchen Kanban
-              </h1>
-              <span className="badge badge-ready font-bold text-xs py-1 px-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-dot" />
-                Live Sync (8s)
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Ticketing stream for culinary team • Last updated at{' '}
-              {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Kitchen Orders
+          </h1>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-center">
@@ -139,7 +125,7 @@ export default function KitchenKanbanPage() {
       {/* ═══════════ KANBAN GRID (4 COLUMNS) ═══════════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
         {COLUMNS.map((col) => {
-          const colOrders = orders.filter((o) => o.status === col.key);
+          const colOrders = orders.filter((o) => o.status === col.key || (col.key === 'pending' && o.status === 'confirmed'));
 
           return (
             <div
@@ -226,7 +212,7 @@ export default function KitchenKanbanPage() {
                                 {it.menu_item_name || it.item_name || 'Dish'}
                               </span>
                               {it.notes && (
-                                <p className="text-[10px] italic text-amber-700 max-w-[120px] truncate font-medium">
+                                <p className="text-[10px] italic text-amber-700 max-w-[160px] break-words font-medium">
                                   {it.notes}
                                 </p>
                               )}
@@ -243,7 +229,7 @@ export default function KitchenKanbanPage() {
 
                         {/* Action Buttons */}
                         <div className="pt-1 flex items-center justify-between gap-2">
-                          {col.key === 'pending' && (
+                          {col.key === 'pending' && canPrepare && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'preparing')}
                               className="w-full btn btn-primary py-2 text-xs font-bold gap-1.5 shadow-md shadow-orange-500/20"
@@ -253,7 +239,7 @@ export default function KitchenKanbanPage() {
                             </button>
                           )}
 
-                          {col.key === 'preparing' && (
+                          {col.key === 'preparing' && canPrepare && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'ready')}
                               className="w-full btn btn-success py-2 text-xs font-bold gap-1.5 shadow-md shadow-emerald-500/20"
@@ -263,7 +249,7 @@ export default function KitchenKanbanPage() {
                             </button>
                           )}
 
-                          {col.key === 'ready' && (
+                          {col.key === 'ready' && canServe && (
                             <button
                               onClick={() => handleStatusChange(order.id, 'served')}
                               className="w-full btn btn-primary py-2 text-xs font-bold gap-1.5 shadow-md shadow-orange-500/20"
@@ -275,7 +261,7 @@ export default function KitchenKanbanPage() {
 
                           {col.key === 'served' && (
                             <div className="w-full text-center py-1.5 text-xs font-bold text-slate-400 bg-slate-50/70 rounded-xl border border-slate-100">
-                              Order Complete ✓
+                              Order Complete
                             </div>
                           )}
                         </div>

@@ -1,5 +1,5 @@
 """
-Utility functions for the Restaurant Management System.
+Utility functions for the Restaurant Management Service.
 """  # Module docstring for helper and utility functions
 
 import io  # Import standard I/O library for handling byte streams in memory
@@ -46,12 +46,32 @@ def get_next_token_number(restaurant):  # Function to calculate next sequential 
     """  # Function docstring explaining daily token counter reset logic
     from restaurant.models import Token  # Lazy import Token model to avoid circular import issues
 
-    today = timezone.now().date()  # Get current calendar date in active timezone
+    now = timezone.localtime()
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
     last_token = (  # Begin query expression to retrieve latest token record
         Token.objects  # Access Token model queryset manager
-        .filter(restaurant=restaurant, created_at__date=today)  # Filter tokens matching restaurant and created today
+        .filter(restaurant=restaurant, created_at__range=(start_of_day, end_of_day))
         .order_by('-number')  # Sort tokens in descending order by token number
         .first()  # Fetch the top token record with maximum token number
     )  # Close query expression tuple
     return (last_token.number + 1) if last_token else 1  # Increment highest token number or start at 1 if none created today
 
+
+def log_safety_event(event_type: str, description: str, severity: str = 'info', user=None, restaurant=None, ip_address: str = '', metadata: dict = None):
+    """Log an audit or security safety event."""
+    from restaurant.models import SafetyLog
+    try:
+        username = user.username if user else ''
+        return SafetyLog.objects.create(
+            event_type=event_type,
+            description=description,
+            severity=severity,
+            user=user,
+            username=username,
+            restaurant=restaurant,
+            ip_address=ip_address,
+            metadata=metadata or {},
+        )
+    except Exception:
+        return None

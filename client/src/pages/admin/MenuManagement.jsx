@@ -22,6 +22,8 @@ import {
 import Modal from '../../components/Modal';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
+import LiquidPills from '../../components/ui/LiquidPills';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -29,6 +31,7 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 export default function MenuManagement() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('items'); // 'items' | 'categories'
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,7 +59,7 @@ export default function MenuManagement() {
         setCategories(catRes.data.results || catRes.data || []);
         setItems(itemRes.data.results || itemRes.data || []);
       })
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -74,6 +77,12 @@ export default function MenuManagement() {
       });
       setImagePreview(item.image ? (item.image.startsWith('http') ? item.image : `${API_BASE}${item.image}`) : null);
     } else {
+      if (categories.length === 0) {
+        toast.error('Please create at least one category before adding dishes.');
+        setActiveTab('categories');
+        openCatModal();
+        return;
+      }
       setEditingItem(null);
       setForm({
         name: '', description: '', price: '', category: categories[0]?.id || '',
@@ -96,10 +105,27 @@ export default function MenuManagement() {
 
   const handleItemSubmit = async (e) => {
     e.preventDefault();
+    if (!form.name?.trim()) {
+      toast.error('Dish name is required.');
+      return;
+    }
+    if (!form.category) {
+      toast.error('Please select a category for this dish.');
+      return;
+    }
+    if (!form.price || isNaN(form.price) || Number(form.price) < 0) {
+      toast.error('Please enter a valid price.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => formData.append(key, val));
+      Object.entries(form).forEach(([key, val]) => {
+        if (val !== null && val !== undefined) {
+          formData.append(key, val);
+        }
+      });
       if (imageFile) formData.append('image', imageFile);
 
       if (editingItem) {
@@ -111,8 +137,16 @@ export default function MenuManagement() {
       }
       setModalOpen(false);
       fetchData();
-    } catch {
-      toast.error('Failed to save menu item. Check required fields.');
+    } catch (err) {
+      const errMsg = err.response?.data
+        ? typeof err.response.data === 'string'
+          ? err.response.data
+          : Object.entries(err.response.data)
+              .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+              .join(' | ')
+        : err.message || 'Failed to save menu item.';
+      toast.error(errMsg);
+      console.error('Failed to save menu item:', err);
     } finally {
       setSubmitting(false);
     }
@@ -172,6 +206,8 @@ export default function MenuManagement() {
     }
   };
 
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
+
   if (loading) {
     return <div className="flex justify-center py-24"><LoadingSpinner size="lg" /></div>;
   }
@@ -179,54 +215,30 @@ export default function MenuManagement() {
   return (
     <div className="animate-fade-in space-y-6 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
-      <div className="glass-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 border border-white/80">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/25 shrink-0"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)' }}
-          >
-            <FoodRegular fontSize={26} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Menu Catalog</h1>
-              <span className="badge badge-ready font-bold text-xs py-1 px-3">
-                {items.length} Active Dishes
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Curate appetizers, entrees, beverages, allergens, and dietary badges
-            </p>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Menu Catalog</h1>
+          <span className="badge badge-ready font-bold text-xs py-1 px-3">
+            {items.length} Active Dishes
+          </span>
         </div>
 
-        {/* Tab switcher + Add Button */}
+        {/* iOS Liquid Glass Tab Switcher with Spring Wobble */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex glass-pill p-1 rounded-full shadow-xs">
-            <button
-              onClick={() => setActiveTab('items')}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
-                activeTab === 'items'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Menu Items ({items.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'categories'
-                  ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Categories ({categories.length})
-            </button>
-          </div>
+          <LiquidPills
+            items={[
+              { label: `Menu Items (${items.length})`, value: 'items' },
+              { label: `Categories (${categories.length})`, value: 'categories' },
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+            layoutId="menu-management-tabs-pill"
+            size="sm"
+          />
 
           {activeTab === 'items' ? (
             <button
+              id="btn-add-item"
               onClick={() => openItemModal()}
               className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
             >
@@ -234,6 +246,7 @@ export default function MenuManagement() {
             </button>
           ) : (
             <button
+              id="btn-add-category"
               onClick={() => openCatModal()}
               className="btn btn-primary px-4 py-2 text-xs font-bold gap-1.5"
             >
@@ -266,7 +279,7 @@ export default function MenuManagement() {
                 return (
                   <div
                     key={item.id}
-                    className="glass-card border border-white/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
+                    className="glass-card border border-white/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                   >
                     {imgUrl ? (
                       <img
@@ -307,8 +320,8 @@ export default function MenuManagement() {
                             <span className="badge badge-vegan">Vegan</span>
                           )}
                           {item.spice_level > 0 && (
-                            <span className="badge bg-red-50 text-red-600">
-                              {'🌶️'.repeat(item.spice_level)}
+                            <span className="badge bg-red-500/10 text-red-600 border border-red-500/20 text-[10px] font-semibold">
+                              {['Mild', 'Medium', 'Hot', 'Extra Hot'][item.spice_level - 1] || 'Spicy'}
                             </span>
                           )}
                         </div>
@@ -403,6 +416,7 @@ export default function MenuManagement() {
               <div>
                 <label className="form-label">Dish Name *</label>
                 <input
+                  id="item-dish-name"
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -413,18 +427,12 @@ export default function MenuManagement() {
 
               <div>
                 <label className="form-label">Category *</label>
-                <select
-                  required
+                <CustomSelect
+                  options={categories.map((c) => ({ value: c.id, label: c.name }))}
                   value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="input"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setForm({ ...form, category: val })}
+                  placeholder="Select a category..."
+                />
               </div>
             </div>
 
@@ -432,6 +440,7 @@ export default function MenuManagement() {
               <div>
                 <label className="form-label">Price (₹) *</label>
                 <input
+                  id="item-price"
                   type="number"
                   step="0.01"
                   required
@@ -444,6 +453,7 @@ export default function MenuManagement() {
               <div>
                 <label className="form-label">Prep Time (Mins)</label>
                 <input
+                  id="item-prep-time"
                   type="number"
                   value={form.preparation_time}
                   onChange={(e) => setForm({ ...form, preparation_time: e.target.value })}
@@ -453,22 +463,23 @@ export default function MenuManagement() {
 
               <div>
                 <label className="form-label">Spice Level (0-3)</label>
-                <select
+                <CustomSelect
+                  options={[
+                    { value: 0, label: 'Mild (0)' },
+                    { value: 1, label: 'Medium (1)' },
+                    { value: 2, label: 'Hot (2)' },
+                    { value: 3, label: 'Extra Spicy (3)' },
+                  ]}
                   value={form.spice_level}
-                  onChange={(e) => setForm({ ...form, spice_level: parseInt(e.target.value) })}
-                  className="input"
-                >
-                  <option value={0}>Mild (0)</option>
-                  <option value={1}>Medium (1)</option>
-                  <option value={2}>Hot (2)</option>
-                  <option value={3}>Extra Spicy (3)</option>
-                </select>
+                  onChange={(val) => setForm({ ...form, spice_level: parseInt(val) })}
+                />
               </div>
             </div>
 
             <div>
               <label className="form-label">Description</label>
               <textarea
+                id="item-description"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
@@ -539,6 +550,7 @@ export default function MenuManagement() {
                 Cancel
               </button>
               <button
+                id="btn-save-dish"
                 type="submit"
                 disabled={submitting}
                 className="btn btn-primary px-6 text-xs font-bold gap-1.5"
@@ -563,6 +575,7 @@ export default function MenuManagement() {
             <div>
               <label className="form-label">Category Name *</label>
               <input
+                id="cat-name"
                 required
                 value={catForm.name}
                 onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
@@ -574,6 +587,7 @@ export default function MenuManagement() {
             <div>
               <label className="form-label">Sort Order</label>
               <input
+                id="cat-order"
                 type="number"
                 value={catForm.display_order}
                 onChange={(e) => setCatForm({ ...catForm, display_order: parseInt(e.target.value) || 0 })}
@@ -584,6 +598,7 @@ export default function MenuManagement() {
             <div>
               <label className="form-label">Description</label>
               <textarea
+                id="cat-description"
                 value={catForm.description}
                 onChange={(e) => setCatForm({ ...catForm, description: e.target.value })}
                 rows={2}
@@ -600,6 +615,7 @@ export default function MenuManagement() {
                 Cancel
               </button>
               <button
+                id="btn-save-category"
                 type="submit"
                 disabled={submitting}
                 className="btn btn-primary px-6 text-xs font-bold"

@@ -1,5 +1,5 @@
 """
-Role-based permissions for the Restaurant Management System.
+Role-based permissions for the Restaurant Management Service.
 
 All permissions check that the authenticated user has a StaffProfile
 and that the profile's restaurant matches the resource being accessed.
@@ -17,7 +17,7 @@ class _HasRole(BasePermission):  # Base permission class for checking user roles
         if not request.user or not request.user.is_authenticated:  # Verify that user object exists and is authenticated
             return False  # Deny permission if user is anonymous or unauthenticated
         profile = getattr(request.user, 'staff_profile', None)  # Retrieve staff_profile attribute from user object safely
-        if profile is None or not profile.is_active:  # Check if profile exists and is active
+        if profile is None or not profile.is_active or not profile.restaurant.is_active:  # Check if profile exists and is active
             return False  # Deny permission if profile is missing or inactive
         return profile.role in self.required_roles  # Grant permission if staff profile role is listed in required_roles
 
@@ -55,7 +55,7 @@ class IsAdminOrReadOnly(BasePermission):  # Permission class for read-only publi
         if not request.user or not request.user.is_authenticated:  # Verify authentication for write operations
             return False  # Deny write requests from unauthenticated users
         profile = getattr(request.user, 'staff_profile', None)  # Retrieve staff profile from request user
-        return profile is not None and profile.role == 'admin'  # Allow write access only if user is an admin
+        return bool(profile and profile.is_active and profile.restaurant.is_active and profile.role == 'admin')  # Allow write access only if user is an admin
 
 
 class IsAdminOrKitchen(BasePermission):  # Permission class allowing access to Admin or Kitchen staff
@@ -65,7 +65,7 @@ class IsAdminOrKitchen(BasePermission):  # Permission class allowing access to A
         if not request.user or not request.user.is_authenticated:  # Verify user is authenticated
             return False  # Deny permission if not authenticated
         profile = getattr(request.user, 'staff_profile', None)  # Fetch staff profile attribute
-        if profile is None or not profile.is_active:  # Check if profile is active
+        if profile is None or not profile.is_active or not profile.restaurant.is_active:  # Check if profile is active
             return False  # Deny access if profile missing or inactive
         return profile.role in ('admin', 'kitchen')  # Allow access if role is admin or kitchen
 
@@ -77,7 +77,18 @@ class IsBillerOrAdmin(BasePermission):  # Permission class allowing access to Bi
         if not request.user or not request.user.is_authenticated:  # Verify user is authenticated
             return False  # Deny permission if not authenticated
         profile = getattr(request.user, 'staff_profile', None)  # Fetch staff profile attribute
-        if profile is None or not profile.is_active:  # Check if profile is active
+        if profile is None or not profile.is_active or not profile.restaurant.is_active:  # Check if profile is active
             return False  # Deny access if profile missing or inactive
         return profile.role in ('admin', 'biller')  # Allow access if role is admin or biller
+
+
+class IsSuperUserOrPlatformAdmin(BasePermission):
+    """
+    Grants access STRICTLY to system superusers (is_superuser=True).
+    Normal hotel owners, restaurant staff, and tenant admins are strictly denied (403).
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return bool(request.user.is_superuser)
 

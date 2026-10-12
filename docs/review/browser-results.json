@@ -1,0 +1,29 @@
+{
+  "passed": [
+    "Desktop landing and scroll transform",
+    "Workflow tabs",
+    "Mobile landing and navigation",
+    "Reduced motion",
+    "Interactive sample ordering",
+    "Public table selection",
+    "Table preserved through header cart",
+    "Customer checkout and tracking",
+    "Latest-order tracking link",
+    "Kitchen prepares and marks ready",
+    "Kitchen blocked from admin configuration",
+    "Waiter serves order",
+    "Cashier generates bill",
+    "Cashier records payment",
+    "Admin route /menu-management",
+    "Admin route /tables",
+    "Admin route /staff",
+    "Admin route /recipes",
+    "Admin route /orders",
+    "Admin route /analytics",
+    "Admin route /config",
+    "Admin route /bill-history",
+    "Platform administration",
+    "Shop cashier creates counter order"
+  ],
+  "browser_errors": []
+}

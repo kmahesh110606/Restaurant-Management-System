@@ -8,8 +8,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
-export default function ProtectedRoute({ allowedRoles = [] }) {
-  const { isAuthenticated, role, loading } = useAuth();
+export default function ProtectedRoute({ allowedRoles = [], requireSuperuser = false }) {
+  const { isAuthenticated, role, isSuperuser, loading, getDefaultPath } = useAuth();
 
   if (loading) {
     return (
@@ -23,9 +23,14 @@ export default function ProtectedRoute({ allowedRoles = [] }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Strict superuser guard for platform admin routes
+  if (requireSuperuser) {
+    return isSuperuser ? <Outlet /> : <Navigate to={getDefaultPath()} replace />;
+  }
+
   // If specific roles are required and user's role is not in the list
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getDefaultPath()} replace />;
   }
 
   return <Outlet />;

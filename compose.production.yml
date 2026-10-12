@@ -1,0 +1,57 @@
+# Standalone production configuration. Run behind a TLS proxy that overwrites
+# X-Forwarded-Proto and reaches the frontend through the loopback port only.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME}
+      POSTGRES_USER: ${DB_USER:?Set DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: 'False'
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set a unique secret}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set your hostname}
+      DB_NAME: ${DB_NAME:?Set DB_NAME}
+      DB_USER: ${DB_USER:?Set DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: '5432'
+      FRONTEND_URL: ${FRONTEND_URL:?Set the HTTPS frontend URL}
+      CORS_ALLOWED_ORIGINS: ${FRONTEND_URL:?Set the HTTPS frontend URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      TRUST_PROXY_HTTPS: 'true'
+    volumes:
+      - backend_media:/app/media
+      - backend_static:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: ''
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - backend_media:/srv/media:ro
+      - backend_static:/srv/static:ro
+    depends_on:
+      - backend
+volumes:
+  postgres_data:
+  backend_media:
+  backend_static:

@@ -1,27 +1,5 @@
-/**
- * GoogleAuthButton — Styled Google OAuth sign-in button (owner-only).
- * Wraps @react-oauth/google's GoogleLogin component.
- */
-
 import { GoogleLogin } from '@react-oauth/google';
-
-export default function GoogleAuthButton({ onSuccess, onError, text = 'signin_with' }) {
-  return (
-    <div className="google-auth-btn" id="google-auth-button">
-      <GoogleLogin
-        onSuccess={(credentialResponse) => {
-          if (onSuccess) onSuccess(credentialResponse.credential);
-        }}
-        onError={() => {
-          if (onError) onError('Google sign-in failed');
-        }}
-        text={text}
-        shape="rectangular"
-        theme="filled_black"
-        size="large"
-        width="100%"
-        logo_alignment="left"
-      />
-    </div>
-  );
+export default function GoogleAuthButton({ onSuccess, onError, className = '' }) {
+  if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) return null;
+  return <div className={`google-auth-wrapper ${className}`}><GoogleLogin onSuccess={(response) => onSuccess?.(response.credential)} onError={() => onError?.('Google sign-in failed')} text="continue_with" shape="rectangular" theme="outline" size="large" /></div>;
 }

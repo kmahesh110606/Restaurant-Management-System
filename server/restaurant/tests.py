@@ -1,5 +1,5 @@
 """
-Comprehensive Test Suite for the Restaurant Management System (RMS).
+Comprehensive Test Suite for the Restaurant Management Service (RMS).
 
 Covers:
   - Models (creation, relationships, constraints, methods)
@@ -16,6 +16,7 @@ import uuid
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -500,7 +501,7 @@ class SerializerTests(TestCase, TestDataMixin):
         # Public serializer should not include address, phone, etc.
         self.assertNotIn('address', data)
         self.assertNotIn('phone', data)
-        self.assertNotIn('tax_rate', data)
+        self.assertIn('tax_rate', data)  # Customers need the tax rate shown at checkout.
 
     def test_login_serializer_valid(self):
         serializer = LoginSerializer(data={'username': 'test', 'password': 'pass123'})
@@ -676,9 +677,6 @@ class PermissionTests(TestCase, TestDataMixin):
 # API Endpoint Tests
 # ===========================================================================
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class AuthAPITest(APITestCase, TestDataMixin):
     """Tests for authentication API endpoints."""
 
@@ -745,9 +743,6 @@ class AuthAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class CategoryAPITest(APITestCase, TestDataMixin):
     """Tests for Category API endpoints."""
 
@@ -782,9 +777,6 @@ class CategoryAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class MenuItemAPITest(APITestCase, TestDataMixin):
     """Tests for MenuItem API endpoints."""
 
@@ -806,14 +798,46 @@ class MenuItemAPITest(APITestCase, TestDataMixin):
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_menu_item_multipart(self):
+        """Test creating menu item using multipart/form-data with string booleans and numbers."""
+        self.client.force_authenticate(user=self.data['admin_user'])
+        response = self.client.post('/api/v1/menu-items/', {
+            'category': self.data['category'].id,
+            'name': 'Multipart Pasta',
+            'description': 'Delicious freshly made pasta',
+            'price': '24.50',
+            'is_available': 'true',
+            'is_vegetarian': 'true',
+            'is_vegan': 'false',
+            'spice_level': '1',
+            'preparation_time': '20',
+        }, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Multipart Pasta')
+        self.assertTrue(response.data['is_vegetarian'])
+
+    def test_create_menu_item_with_image(self):
+        """Test uploading dish photo via multipart/form-data."""
+        self.client.force_authenticate(user=self.data['admin_user'])
+        import io
+        from PIL import Image
+        buf = io.BytesIO()
+        Image.new('RGB', (20, 20), color='green').save(buf, format='PNG')
+        image = SimpleUploadedFile("dish.png", buf.getvalue(), content_type="image/png")
+        response = self.client.post('/api/v1/menu-items/', {
+            'category': self.data['category'].id,
+            'name': 'Photo Dish',
+            'price': '15.00',
+            'image': image,
+        }, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(response.data.get('image'))
+
     def test_public_menu_items_by_slug(self):
         response = self.client.get('/api/v1/menu-items/', {'restaurant': 'test-resto'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class TableAPITest(APITestCase, TestDataMixin):
     """Tests for Table API endpoints."""
 
@@ -844,9 +868,6 @@ class TableAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class OrderAPITest(APITestCase, TestDataMixin):
     """Tests for Order API endpoints."""
 
@@ -917,10 +938,76 @@ class OrderAPITest(APITestCase, TestDataMixin):
         for order in response.data['results']:
             self.assertEqual(order['status'], 'pending')
 
+    def test_full_order_to_bill_lifecycle_workflow(self):
+        """
+        Comprehensive test of full path:
+        1. Customer places order
+        2. Kitchen accepts and marks preparing
+        3. Kitchen marks ready
+        4. Waiter serves order
+        5. Biller looks up unpaid orders, creates bill
+        6. Biller records cash payment for the already-served order
+        """
+        # 1. Customer places order
+        customer_resp = self.client.post('/api/v1/orders/', {
+            'restaurant_slug': 'test-resto',
+            'table_number': self.data['table'].number,
+            'phone_number': '+919876543210',
+            'customer_name': 'E2E Customer',
+            'items': [
+                {'menu_item': self.data['item1'].id, 'quantity': 2},
+                {'menu_item': self.data['item2'].id, 'quantity': 1},
+            ],
+        }, format='json')
+        self.assertEqual(customer_resp.status_code, status.HTTP_201_CREATED)
+        order_id = customer_resp.data['id']
+        self.assertEqual(customer_resp.data['status'], 'pending')
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
+        # 2. Kitchen views order and starts preparing
+        self.client.force_authenticate(user=self.data['kitchen_user'])
+        prep_resp = self.client.patch(f'/api/v1/orders/{order_id}/update_status/', {
+            'status': 'preparing',
+        })
+        self.assertEqual(prep_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(prep_resp.data['status'], 'preparing')
+
+        # 3. Kitchen marks ready
+        ready_resp = self.client.patch(f'/api/v1/orders/{order_id}/update_status/', {
+            'status': 'ready',
+        })
+        self.assertEqual(ready_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(ready_resp.data['status'], 'ready')
+
+        # 4. Waiter serves order to table
+        self.client.force_authenticate(user=self.data['waiter_user'])
+        served_resp = self.client.patch(f'/api/v1/orders/{order_id}/update_status/', {
+            'status': 'served',
+        })
+        self.assertEqual(served_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(served_resp.data['status'], 'served')
+
+        # 5. Biller creates bill
+        self.client.force_authenticate(user=self.data['biller_user'])
+        bill_resp = self.client.post('/api/v1/bills/', {
+            'table': self.data['table'].id,
+            'order_ids': [order_id],
+            'discount_amount': '0.00',
+        }, format='json')
+        self.assertEqual(bill_resp.status_code, status.HTTP_201_CREATED)
+        bill_id = bill_resp.data['id']
+        self.assertEqual(bill_resp.data['payment_status'], 'unpaid')
+        self.assertGreater(float(bill_resp.data['final_amount']), 0)
+
+        # 6. Biller marks bill as paid via cash
+        pay_resp = self.client.patch(f'/api/v1/bills/{bill_id}/pay/', {
+            'payment_status': 'paid',
+            'payment_method': 'cash',
+        }, format='json')
+        self.assertEqual(pay_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(pay_resp.data['payment_status'], 'paid')
+        self.assertEqual(pay_resp.data['payment_method'], 'cash')
+
+
 class BillAPITest(APITestCase, TestDataMixin):
     """Tests for Bill API endpoints."""
 
@@ -970,9 +1057,6 @@ class BillAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class StaffAPITest(APITestCase, TestDataMixin):
     """Tests for Staff Management API endpoints."""
 
@@ -1014,9 +1098,6 @@ class StaffAPITest(APITestCase, TestDataMixin):
         self.assertFalse(StaffProfile.objects.filter(id=profile.id).exists())
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class AnalyticsAPITest(APITestCase, TestDataMixin):
     """Tests for Analytics API endpoints."""
 
@@ -1059,9 +1140,6 @@ class AnalyticsAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class TokenAPITest(APITestCase, TestDataMixin):
     """Tests for Token API endpoints."""
 
@@ -1093,9 +1171,6 @@ class TokenAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class CustomerAPITest(APITestCase, TestDataMixin):
     """Tests for Customer API endpoints."""
 
@@ -1114,9 +1189,6 @@ class CustomerAPITest(APITestCase, TestDataMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class MultiTenantIsolationTest(APITestCase, TestDataMixin):
     """Tests to verify data isolation between restaurants."""
 
@@ -1155,9 +1227,6 @@ class MultiTenantIsolationTest(APITestCase, TestDataMixin):
             self.assertEqual(str(staff_entry['restaurant']), expected_id)
 
 
-@override_settings(
-    DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}},
-)
 class RestaurantAPITest(APITestCase, TestDataMixin):
     """Tests for Restaurant API endpoints."""
 
@@ -1186,3 +1255,135 @@ class RestaurantAPITest(APITestCase, TestDataMixin):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn('address', response.data)
+
+
+class TokenRefreshAPITest(APITestCase, TestDataMixin):
+    """Tests for SimpleJWT Token Refresh endpoint."""
+
+    def setUp(self):
+        self.data = self.setup_full_restaurant()
+        self.client = APIClient()
+
+    def test_token_refresh_success(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.data['admin_user'])
+        response = self.client.post('/api/v1/auth/token/refresh/', {
+            'refresh': str(refresh),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+
+    def test_token_refresh_invalid_token(self):
+        response = self.client.post('/api/v1/auth/token/refresh/', {
+            'refresh': 'invalid.token.here',
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class RestaurantSignupAPITest(APITestCase, TestDataMixin):
+    """Tests for multi-tenant restaurant registration."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_successful_signup(self):
+        payload = {
+            'restaurant_name': 'Grand Bistro',
+            'restaurant_slug': 'grand-bistro',
+            'first_name': 'Jane',
+            'last_name': 'Chef',
+            'username': 'janechef',
+            'email': 'jane@grandbistro.com',
+            'password': 'SecurePassword123!',
+            'workflow_type': 'table',
+            'currency': '₹',
+            'primary_color': '#EA580C',
+        }
+        response = self.client.post('/api/v1/auth/signup/', payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('access', response.data)
+        self.assertIn('restaurant', response.data)
+        self.assertEqual(response.data['restaurant']['name'], 'Grand Bistro')
+        self.assertEqual(response.data['role'], 'admin')
+
+    def test_signup_duplicate_username(self):
+        self.create_user(username='existinguser')
+        payload = {
+            'restaurant_name': 'Another Place',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'username': 'existinguser',
+            'email': 'another@test.com',
+            'password': 'SecurePassword123!',
+        }
+        response = self.client.post('/api/v1/auth/signup/', payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PlatformAdminAPITest(APITestCase, TestDataMixin):
+    """Tests for platform-level restaurant analysis and master credential management."""
+
+    def setUp(self):
+        self.data = self.setup_full_restaurant()
+        self.client = APIClient()
+        self.superuser = User.objects.create_superuser('platformadmin', 'plat@test.com', 'Pass1234!')
+
+    def test_platform_restaurants_list_superuser(self):
+        self.client.force_authenticate(user=self.superuser)
+        response = self.client.get('/api/v1/platform/restaurants/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) >= 1)
+        r_entry = response.data[0]
+        self.assertIn('owner', r_entry)
+        self.assertIn('metrics', r_entry)
+        self.assertEqual(r_entry['name'], self.data['restaurant'].name)
+
+    def test_platform_summary_superuser(self):
+        self.client.force_authenticate(user=self.superuser)
+        response = self.client.get('/api/v1/platform/summary/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('total_restaurants', response.data)
+        self.assertIn('total_gmv', response.data)
+
+    def test_reset_owner_password_success(self):
+        self.client.force_authenticate(user=self.superuser)
+        r_id = self.data['restaurant'].id
+        response = self.client.post(f'/api/v1/platform/{r_id}/reset_owner_password/', {
+            'new_password': 'BrandNewPassword999!',
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('successfully updated', response.data['detail'])
+
+        # Verify owner can now authenticate with the updated password
+        from django.contrib.auth import authenticate
+        owner_username = self.data['admin_user'].username
+        user = authenticate(username=owner_username, password='BrandNewPassword999!')
+        self.assertIsNotNone(user)
+
+    def test_reset_owner_password_too_short(self):
+        self.client.force_authenticate(user=self.superuser)
+        r_id = self.data['restaurant'].id
+        response = self.client.post(f'/api/v1/platform/{r_id}/reset_owner_password/', {
+            'new_password': '123',
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_hotel_owner_strictly_forbidden_from_platform_endpoints(self):
+        """Verifies that normal hotel owners (admin role) CANNOT access any platform endpoint."""
+        self.client.force_authenticate(user=self.data['admin_user'])
+
+        # 1. Restaurants list
+        r1 = self.client.get('/api/v1/platform/restaurants/')
+        self.assertEqual(r1.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 2. Macro summary
+        r2 = self.client.get('/api/v1/platform/summary/')
+        self.assertEqual(r2.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 3. Users directory
+        r3 = self.client.get('/api/v1/platform/users/')
+        self.assertEqual(r3.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 4. Safety logs
+        r4 = self.client.get('/api/v1/platform/safety_logs/')
+        self.assertEqual(r4.status_code, status.HTTP_403_FORBIDDEN)

@@ -1,7 +1,7 @@
-import api from './client'; // Import custom Axios HTTP client instance
+import api, { getCollection } from './client'; // Import custom Axios HTTP client instance
 
 export const getRecipes = (params = {}) => // Export function to fetch recipes with optional query parameters
-  api.get('/recipes/', { params }); // Execute GET request to /recipes/ endpoint
+  getCollection('/recipes/', params); // Execute GET request to /recipes/ endpoint
 
 export const getRecipe = (id) => // Export function to fetch single recipe definition by ID
   api.get(`/recipes/${id}/`); // Execute GET request to /recipes/{id}/ endpoint

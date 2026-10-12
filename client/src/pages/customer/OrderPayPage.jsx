@@ -37,6 +37,11 @@ export default function CheckoutPage() {
   const finalAmount = subtotal + taxAmount;
 
   const handlePlaceOrder = async () => {
+    if (submitting) return;
+    if (restaurantConfig?.workflow_type === 'table' && !tableNumber) {
+      navigate(`/${slug}/book`);
+      return;
+    }
     if (!phoneNumber.trim()) {
       toast.error('Phone number is required');
       return;
@@ -65,6 +70,7 @@ export default function CheckoutPage() {
       }
 
       const { data } = await createOrder(payload);
+      try { localStorage.setItem(`rms_last_order_${slug}`, data.id); } catch { /* Tracking URL remains available. */ }
       clearCart();
       toast.success('Order placed successfully!');
       navigate(`/${slug}/order/${data.id}`);
@@ -83,7 +89,7 @@ export default function CheckoutPage() {
         <h2 className="text-lg font-bold text-gray-900 mb-2">Your cart is empty</h2>
         <p className="text-sm text-gray-500 mb-4">Add some items from the menu to get started.</p>
         <button
-          onClick={() => navigate(`/${slug}/menu`)}
+          onClick={() => navigate(`/${slug}/menu${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}`)}
           className="btn btn-primary"
         >
           Browse Menu
@@ -96,7 +102,7 @@ export default function CheckoutPage() {
     <div className="max-w-2xl mx-auto animate-fade-in space-y-6">
       {/* Back */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/${slug}/menu${tableNumber ? `?table=${encodeURIComponent(tableNumber)}` : ''}`)}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 font-semibold transition-colors"
       >
         <ArrowLeftRegular fontSize={16} />
@@ -169,6 +175,7 @@ export default function CheckoutPage() {
           <div className="relative">
             <PersonRegular className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize={16} />
             <input
+              id="checkout-name"
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
@@ -183,6 +190,7 @@ export default function CheckoutPage() {
           <div className="relative">
             <PhoneRegular className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fontSize={16} />
             <input
+              id="checkout-phone"
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
@@ -198,6 +206,7 @@ export default function CheckoutPage() {
           <div className="relative">
             <NoteRegular className="absolute left-3 top-3 text-gray-400" fontSize={16} />
             <textarea
+              id="checkout-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any allergies or special requests..."
@@ -210,6 +219,7 @@ export default function CheckoutPage() {
 
       {/* Place Order */}
       <button
+        id="btn-place-order"
         onClick={handlePlaceOrder}
         disabled={submitting}
         className="btn btn-primary w-full btn-xl justify-center"

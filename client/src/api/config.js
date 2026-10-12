@@ -7,9 +7,10 @@ export const getRestaurantPublic = (slug) => // Export function to fetch public-
   api.get(`/restaurants/${slug}/public/`); // Execute GET request to /restaurants/{slug}/public/ endpoint
 
 export const updateRestaurant = (slug, data) => // Export function to update restaurant settings (with file upload support)
-  api.patch(`/restaurants/${slug}/`, data, { // Execute PATCH request to update restaurant details
-    headers: { 'Content-Type': 'multipart/form-data' }, // Set multipart header to allow image upload payload
-  }); // End patch call configuration
+  api.patch(`/restaurants/${slug}/`, data); // Execute PATCH request to update restaurant details
+
+export const removeMenuBackground = (slug) => // Export function to clear/delete restaurant menu background
+  api.post(`/restaurants/${slug}/remove_menu_background/`);
 
 export const getConfig = () => // Export function to retrieve list/configuration of all accessible restaurants
   api.get('/restaurants/'); // Execute GET request to root restaurants API endpoint

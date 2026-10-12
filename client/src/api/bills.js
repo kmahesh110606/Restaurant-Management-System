@@ -1,7 +1,7 @@
-import api from './client'; // Import custom Axios HTTP client instance
+import api, { getCollection } from './client'; // Import custom Axios HTTP client instance
 
 export const getBills = (params = {}) => // Export function to fetch list of generated bills with query parameters
-  api.get('/bills/', { params }); // Execute GET request to /bills/ endpoint
+  getCollection('/bills/', params); // Execute GET request to /bills/ endpoint
 
 export const getBill = (id) => // Export function to retrieve single bill details by bill ID
   api.get(`/bills/${id}/`); // Execute GET request to /bills/{id}/ endpoint

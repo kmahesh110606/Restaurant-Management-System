@@ -103,11 +103,11 @@ export default function MenuPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
             {restaurantConfig?.name || 'Our Menu'}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {tableNumber
-              ? `Ordering for Table ${tableNumber}`
-              : restaurantConfig?.description || 'Browse our curated dishes and place your order'}
-          </p>
+          {tableNumber && (
+            <p className="text-sm text-gray-500 mt-1">
+              Ordering for Table {tableNumber}
+            </p>
+          )}
           {isViewOnly && (
             <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold">
               <InfoRegular fontSize={14} />
@@ -118,13 +118,13 @@ export default function MenuPage() {
 
         {/* Search */}
         <div className="relative w-full sm:w-72 shrink-0">
-          <SearchRegular className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" fontSize={16} />
+          <SearchRegular className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none search-icon" fontSize={16} />
           <input
             type="text"
             placeholder="Search dishes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10 pr-9 py-2.5 rounded-full text-sm"
+            className="input input-with-icon-left min-h-[42px] pr-9 rounded-full text-sm"
             id="dish-search-input"
           />
           {searchQuery && (

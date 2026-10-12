@@ -1,3 +1,4 @@
+import CounterOrderForm from './CounterOrderForm';
 /**
  * BillerDashboard — POS and counter billing terminal.
  * Lookup orders by Table / Token, calculate discounts and taxes,
@@ -28,11 +29,13 @@ import toast from 'react-hot-toast';
 
 export default function BillerDashboard() {
   const { restaurant } = useAuth();
-  const [lookupType, setLookupType] = useState('table');
+  const [counterOpen, setCounterOpen] = useState(false);
+  const [lookupType, setLookupType] = useState(restaurant?.workflow_type === 'token' ? 'token' : 'table');
   const [lookupValue, setLookupValue] = useState('');
   const [orders, setOrders] = useState([]);
   const [searching, setSearching] = useState(false);
   const [recentBills, setRecentBills] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [billModal, setBillModal] = useState(null);
   const [discount, setDiscount] = useState(0);
@@ -42,7 +45,7 @@ export default function BillerDashboard() {
   const fetchRecentBills = () => {
     getBills({ today: 'true' })
       .then(({ data }) => setRecentBills(data.results || data || []))
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   };
 
@@ -61,7 +64,7 @@ export default function BillerDashboard() {
       const results = Array.isArray(data) ? data : (data.results || []);
       setOrders(results);
       if (results.length === 0) {
-        toast(`No unpaid orders found for ${lookupType} ${lookupValue}`, { icon: '🔍' });
+        toast(`No unpaid orders found for ${lookupType} ${lookupValue}`);
       }
     } catch {
       toast.error('Lookup failed. Please check table/token number.');
@@ -84,8 +87,8 @@ export default function BillerDashboard() {
       setLookupValue('');
       fetchRecentBills();
       toast.success('Bill generated successfully!');
-    } catch {
-      toast.error('Failed to generate bill.');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to generate bill.');
     } finally {
       setCreating(false);
     }
@@ -109,9 +112,11 @@ export default function BillerDashboard() {
     (sum, o) => sum + parseFloat(o.total_amount || 0),
     0
   );
-  const taxRate = parseFloat(restaurant?.tax_rate || 5);
+  const taxRate = parseFloat(restaurant?.tax_rate ?? 0);
   const calculatedTax = (subtotal * taxRate) / 100;
   const grandTotal = Math.max(0, subtotal + calculatedTax - (parseFloat(discount) || 0));
+
+  if (loadError) return <EmptyState title="Could not load this page" subtitle="Check your connection and try again." actionLabel="Retry" onAction={() => window.location.reload()} />;
 
   if (loading) {
     return (
@@ -125,20 +130,9 @@ export default function BillerDashboard() {
     <div className="animate-fade-in space-y-8 pb-16 max-w-7xl mx-auto">
       {/* ═══════════ HEADER ═══════════ */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/70">
-        <div className="flex items-center gap-3.5">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-500/20"
-            style={{ background: 'var(--color-primary)' }}
-          >
-            <ReceiptRegular fontSize={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">Billing & POS Terminal</h1>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Generate guest checks, apply discounts, and record payments
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight">POS Billing</h1>
+        {restaurant?.workflow_type !== 'table' && <button className="btn btn-primary" onClick={() => setCounterOpen(true)}>New counter order</button>}
+        <Modal isOpen={counterOpen} onClose={() => setCounterOpen(false)} title="New counter order"><CounterOrderForm restaurant={restaurant} onCreated={(order) => { setOrders([order]); setCounterOpen(false); toast.success('Order created. Review and generate the bill.'); }} /></Modal>
 
         <button
           onClick={fetchRecentBills}

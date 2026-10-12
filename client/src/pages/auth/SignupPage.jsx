@@ -1,9 +1,4 @@
-/**
- * SignupPage — iOS 28 Liquid Glass Multi-Step Onboarding Wizard.
- * Features pure RMS (Restaurant Management System) branding,
- * responsive non-clipping stepper, safe icon input fields,
- * interactive workflow selection, theme customizer, and review card.
- */
+
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -28,6 +23,7 @@ import {
 } from '@fluentui/react-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleAuthButton from '../../components/GoogleAuthButton';
+import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
 const STEPS = [
@@ -149,8 +145,8 @@ export default function SignupPage() {
         toast.error('Please enter a username');
         return false;
       }
-      if (!form.password || form.password.length < 6) {
-        toast.error('Password must be at least 6 characters');
+      if (!form.password || form.password.length < 8) {
+        toast.error('Password must be at least 8 characters');
         return false;
       }
     } else if (step === 1) {
@@ -230,11 +226,11 @@ export default function SignupPage() {
           >
             <FoodRegular fontSize={20} />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <span className="text-xl font-black tracking-tight text-slate-900">
               RMS
             </span>
-            <span className="text-[10px] font-bold text-orange-600 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="text-[11px] font-semibold text-slate-500 pl-2 border-l border-slate-300">
               Setup Wizard
             </span>
           </div>
@@ -295,13 +291,19 @@ export default function SignupPage() {
         {/* ═══════════ STEP 1: OWNER ACCOUNT ═══════════ */}
         {step === 0 && (
           <div className="space-y-5 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Admin Account</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Primary administrator credentials for restaurant operations</p>
-              </div>
-              <GoogleAuthButton onSuccess={handleGoogleSuccess} text="Quick Signup" />
+            <div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Admin Account</h2>
+
             </div>
+
+            {import.meta.env.VITE_GOOGLE_CLIENT_ID && <div className="space-y-3">
+              <GoogleAuthButton onSuccess={handleGoogleSuccess} text="Sign up with Google Account" />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-slate-200/80" />
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">or register manually</span>
+                <div className="flex-1 h-px bg-slate-200/80" />
+              </div>
+            </div>}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -391,7 +393,7 @@ export default function SignupPage() {
                     required
                     value={form.password}
                     onChange={(e) => updateForm('password', e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder="At least 8 characters"
                     className="input input-with-icon-left input-with-icon-right"
                   />
                   <button
@@ -530,7 +532,7 @@ export default function SignupPage() {
                         <div className="flex items-center justify-between gap-2">
                           <h3 className="text-sm font-extrabold text-slate-900">{opt.title}</h3>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                               isSelected
                                 ? 'bg-orange-600 text-white'
                                 : 'bg-slate-100 text-slate-500'
@@ -615,22 +617,16 @@ export default function SignupPage() {
 
             <div>
               <label className="form-label">Display Typeface</label>
-              <select
+              <CustomSelect
                 value={form.font_family}
-                onChange={(e) => updateForm('font_family', e.target.value)}
-                className="input"
-              >
-                {FONT_OPTIONS.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateForm('font_family', val)}
+                options={FONT_OPTIONS}
+              />
             </div>
 
             {/* Live Preview Box */}
             <div className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 space-y-2.5">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Customer Preview</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Menu preview</p>
               <div
                 className="p-4 rounded-xl text-white shadow-sm flex items-center justify-between"
                 style={{ background: form.primary_color, fontFamily: form.font_family }}
@@ -689,8 +685,8 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="p-3.5 bg-orange-50/70 border border-orange-200/60 rounded-2xl text-xs text-orange-800 font-medium">
-              💡 Your workspace will immediately be configured with your menu repository, live kitchen display, cashier billing terminal, and desk QR codes.
+            <div className="p-3.5 bg-orange-50/70 border border-orange-200/60 rounded-2xl text-xs text-orange-900/90 font-medium">
+              Your workspace will immediately be configured with your menu repository, live kitchen display, cashier billing terminal, and desk QR codes.
             </div>
           </div>
         )}

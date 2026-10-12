@@ -1,11 +1,12 @@
 """
-Django admin registrations for the Restaurant Management System.
+Django admin registrations for the Restaurant Management Service.
 """
 
 from django.contrib import admin
 from restaurant.models import (
     Restaurant, Category, MenuItem, MenuTranslation, Recipe,
     Table, Token, Customer, Order, OrderItem, Bill, StaffProfile,
+    SafetyLog,
 )
 
 
@@ -104,3 +105,15 @@ class BillAdmin(admin.ModelAdmin):
 class StaffProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'restaurant', 'role', 'is_active']
     list_filter = ['restaurant', 'role', 'is_active']
+
+
+@admin.register(SafetyLog)
+class SafetyLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'severity', 'event_type', 'username', 'restaurant', 'ip_address']
+    list_filter = ['severity', 'event_type', 'created_at']
+    search_fields = ['username', 'description', 'ip_address']
+    readonly_fields = ['created_at']
+
+
+admin.site.site_header = "Restaurant Management Service"
+admin.site.site_title = "RMS Administration"

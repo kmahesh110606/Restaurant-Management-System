@@ -11,6 +11,7 @@ import {
   FoodRegular,
   PersonRegular,
   ArrowLeftRegular,
+  DismissRegular,
 } from '@fluentui/react-icons';
 import { trackOrder } from '../../api/orders';
 
@@ -26,6 +27,7 @@ const STATUS_ORDER = ['pending', 'confirmed', 'preparing', 'ready', 'served'];
 
 export default function OrderStatusPage() {
   const { orderId } = useParams();
+  const [enteredId, setEnteredId] = useState('');
   const { restaurantConfig, slug } = useOutletContext() || {};
   const navigate = useNavigate();
 
@@ -54,7 +56,7 @@ export default function OrderStatusPage() {
   };
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) { setLoading(false); return; }
     fetchStatus();
 
     // Poll every 10 seconds
@@ -65,6 +67,12 @@ export default function OrderStatusPage() {
   }, [orderId]);
 
   const currentStepIndex = order ? STATUS_ORDER.indexOf(order.status) : -1;
+
+  if (!orderId) {
+    let lastOrder = null;
+    try { lastOrder = localStorage.getItem(`rms_last_order_${slug}`); } catch { /* Storage may be disabled. */ }
+    return <div className="max-w-lg mx-auto glass-card p-6 space-y-5"><h1 className="text-xl font-bold">Track your order</h1>{lastOrder && <button className="btn btn-primary" onClick={() => navigate(`/${slug}/order/${lastOrder}`)}>View your latest order</button>}<form className="space-y-3" onSubmit={(event) => { event.preventDefault(); if (enteredId.trim()) navigate(`/${slug}/order/${encodeURIComponent(enteredId.trim())}`); }}><label htmlFor="tracking-id" className="block text-sm font-semibold">Order ID</label><input id="tracking-id" className="input w-full" value={enteredId} onChange={(event) => setEnteredId(event.target.value)} placeholder="Order ID from your receipt" required /><button className="btn btn-secondary" type="submit">Track order</button></form></div>;
+  }
 
   if (loading) {
     return (
@@ -114,7 +122,7 @@ export default function OrderStatusPage() {
       {order.status === 'cancelled' && (
         <div className="glass-card p-6 text-center">
           <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
-            <span className="text-2xl">✕</span>
+            <DismissRegular fontSize={24} className="text-red-500" />
           </div>
           <h2 className="text-lg font-bold text-red-600">Order Cancelled</h2>
           <p className="text-sm text-gray-500 mt-1">This order has been cancelled.</p>
@@ -163,7 +171,7 @@ export default function OrderStatusPage() {
                       {step.label}
                     </p>
                     {isCurrent && (
-                      <p className="text-xs text-gray-500 mt-0.5 animate-pulse-soft">In progress...</p>
+                      <p className="text-xs text-gray-500 mt-0.5 ">In progress...</p>
                     )}
                   </div>
                 </div>
