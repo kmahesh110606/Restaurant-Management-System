@@ -9,9 +9,6 @@ import {
   CheckmarkCircleRegular,
   ArrowClockwiseRegular,
   ClockRegular,
-  BookOpenRegular,
-  TimerRegular,
-  AlertRegular,
 } from '@fluentui/react-icons';
 import { getOrders, updateOrderStatus } from '../../api/orders';
 import StatusBadge from '../../components/StatusBadge';

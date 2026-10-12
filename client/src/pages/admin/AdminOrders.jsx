@@ -8,8 +8,6 @@ import { useEffect, useState, useRef } from 'react';
 import {
   ArrowClockwiseRegular,
   ReceiptRegular,
-  ClockRegular,
-  FilterRegular,
   SearchRegular,
 } from '@fluentui/react-icons';
 import { getOrders, updateOrderStatus } from '../../api/orders';

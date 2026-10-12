@@ -1,7 +1,23 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+<<<<<<< HEAD
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { ArrowRightRegular, FoodRegular, TableSimpleRegular, ReceiptRegular, BowlSaladRegular } from '@fluentui/react-icons';
+=======
+import {
+  FoodRegular,
+  BowlSaladRegular,
+  ReceiptRegular,
+  DataBarVerticalRegular,
+  TableSimpleRegular,
+  BookOpenRegular,
+  CheckmarkCircleRegular,
+  ArrowRightRegular,
+  SparkleRegular,
+  TimerRegular,
+  ArrowTrendingLinesRegular,
+} from '@fluentui/react-icons';
+>>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
 import LandingNavbar from './LandingNavbar';
 import './landing.css';
 

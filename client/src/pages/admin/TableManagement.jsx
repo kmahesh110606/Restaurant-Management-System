@@ -9,7 +9,6 @@ import {
   AddRegular,
   EditRegular,
   DeleteRegular,
-  QrCodeRegular,
   ArrowDownloadRegular,
   SaveRegular,
   PrintRegular,

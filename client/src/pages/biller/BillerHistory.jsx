@@ -8,7 +8,6 @@ import {
   HistoryRegular,
   ArrowClockwiseRegular,
   SearchRegular,
-  FilterRegular,
   PrintRegular,
   ReceiptRegular,
 } from '@fluentui/react-icons';

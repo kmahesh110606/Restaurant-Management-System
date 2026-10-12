@@ -10,11 +10,10 @@ import {
   SettingsRegular,
   SaveRegular,
   ColorRegular,
-  CheckmarkCircleRegular,
-  ArrowUploadRegular,
   FoodRegular,
   SparkleRegular,
   ReceiptRegular,
+<<<<<<< HEAD
   GlobeRegular,
   CallRegular,
   LocationRegular,
@@ -23,6 +22,8 @@ import {
   DismissRegular,
   PaintBrushRegular,
   EyeRegular,
+=======
+>>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
 } from '@fluentui/react-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateRestaurant, getRestaurant, removeMenuBackground } from '../../api/config';
@@ -139,9 +140,13 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
+<<<<<<< HEAD
   const [bgFile, setBgFile] = useState(null);
   const [bgPreview, setBgPreview] = useState(null);
   const [deletingBg, setDeletingBg] = useState(false);
+=======
+  const [bgFile, _setBgFile] = useState(null);
+>>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
 
   useEffect(() => {
     if (authRestaurant?.slug) {
