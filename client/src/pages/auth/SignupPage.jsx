@@ -179,36 +179,58 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signupRestaurant({
-        user: {
-          username: form.username.trim(),
-          password: form.password,
-          email: form.email.trim(),
-          first_name: form.first_name.trim(),
-          last_name: form.last_name.trim(),
-          phone_number: form.phone_number.trim(),
-        },
-        restaurant: {
-          name: form.restaurant_name.trim(),
-          slug: form.restaurant_slug.trim(),
-          description: form.restaurant_description.trim(),
-          address: form.restaurant_address.trim(),
-          phone: form.restaurant_phone.trim(),
-          workflow_type: form.workflow_type,
-          primary_color: form.primary_color,
-          secondary_color: form.secondary_color,
-          accent_color: form.accent_color,
-          font_family: form.font_family,
-        },
+        username: form.username.trim(),
+        password: form.password,
+        email: form.email.trim(),
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        phone_number: form.phone_number.trim(),
+        restaurant_name: form.restaurant_name.trim(),
+        restaurant_slug: form.restaurant_slug.trim(),
+        restaurant_description: form.restaurant_description.trim(),
+        restaurant_address: form.restaurant_address.trim(),
+        restaurant_phone: form.restaurant_phone.trim(),
+        workflow_type: form.workflow_type,
+        primary_color: form.primary_color,
+        secondary_color: form.secondary_color,
+        accent_color: form.accent_color,
+        font_family: form.font_family,
       });
 
       toast.success('Restaurant registered successfully! Welcome to your dashboard.');
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      const errorMsg =
-        err.response?.data?.detail ||
-        err.response?.data?.user?.username?.[0] ||
-        err.response?.data?.restaurant?.slug?.[0] ||
-        'Registration failed. Please check your details.';
+      const resData = err.response?.data;
+      let errorMsg = 'Registration failed. Please check your details.';
+      if (resData) {
+        if (typeof resData === 'string') {
+          errorMsg = resData;
+        } else if (resData.detail) {
+          errorMsg = resData.detail;
+        } else if (typeof resData === 'object') {
+          const firstKey = Object.keys(resData)[0];
+          const firstVal = resData[firstKey];
+          if (Array.isArray(firstVal) && firstVal.length > 0) {
+            const raw = firstVal[0];
+            const cleanKey = firstKey.replace(/_/g, ' ');
+            errorMsg = raw.toLowerCase().includes(cleanKey.toLowerCase())
+              ? raw
+              : `${cleanKey}: ${raw}`;
+          } else if (typeof firstVal === 'string') {
+            errorMsg = firstVal;
+          } else if (typeof firstVal === 'object' && firstVal !== null) {
+            const nestedKey = Object.keys(firstVal)[0];
+            const nestedVal = firstVal[nestedKey];
+            if (Array.isArray(nestedVal) && nestedVal.length > 0) {
+              const raw = nestedVal[0];
+              const cleanKey = nestedKey.replace(/_/g, ' ');
+              errorMsg = raw.toLowerCase().includes(cleanKey.toLowerCase())
+                ? raw
+                : `${cleanKey}: ${raw}`;
+            }
+          }
+        }
+      }
       toast.error(errorMsg);
     } finally {
       setLoading(false);

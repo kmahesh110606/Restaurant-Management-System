@@ -330,6 +330,7 @@ def restaurant_signup(request):
             secondary_color=data.get('secondary_color', '#1a1a1a'),
             accent_color=data.get('accent_color', '#FFB300'),
             font_family=data.get('font_family', 'Inter'),
+            currency=data.get('currency', 'INR'),
             owner=user,
         )
 
@@ -1002,6 +1003,8 @@ class StaffProfileViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
 
         restaurant = _get_user_restaurant(request.user)
+        if not restaurant:
+            raise ValidationError({'detail': 'No active restaurant associated with this user.'})
 
         user = User.objects.create_user(
             username=data['username'],

@@ -1319,6 +1319,25 @@ class RestaurantSignupAPITest(APITestCase, TestDataMixin):
         response = self.client.post('/api/v1/auth/signup/', payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_signup_nested_payload(self):
+        payload = {
+            'user': {
+                'username': 'nestedchef',
+                'password': 'SecurePassword123!',
+                'email': 'nested@bistro.com',
+                'first_name': 'Nested',
+                'last_name': 'Owner',
+            },
+            'restaurant': {
+                'name': 'Nested Bistro',
+                'slug': 'nested-bistro',
+            },
+        }
+        response = self.client.post('/api/v1/auth/signup/', payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['restaurant']['name'], 'Nested Bistro')
+        self.assertEqual(response.data['role'], 'admin')
+
 
 class PlatformAdminAPITest(APITestCase, TestDataMixin):
     """Tests for platform-level restaurant analysis and master credential management."""

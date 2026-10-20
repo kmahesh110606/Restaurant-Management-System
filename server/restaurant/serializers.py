@@ -393,9 +393,38 @@ class RestaurantSignupSerializer(serializers.Serializer):
     secondary_color = serializers.CharField(max_length=7, default='#1a1a1a')
     accent_color = serializers.CharField(max_length=7, default='#FFB300')
     font_family = serializers.CharField(max_length=100, default='Inter')
+    currency = serializers.CharField(max_length=5, required=False, default='INR')
 
     # Optional: Google ID token (for Google-based signup)
     google_id_token = serializers.CharField(required=False, allow_blank=True, default='')
+
+    def to_internal_value(self, data):
+        # Support both flat payloads and nested { user: {...}, restaurant: {...} } payloads
+        if isinstance(data, dict) and ('user' in data or 'restaurant' in data):
+            flattened = {}
+            user_data = data.get('user')
+            if isinstance(user_data, dict):
+                flattened.update(user_data)
+            resto_data = data.get('restaurant')
+            if isinstance(resto_data, dict):
+                for k, v in resto_data.items():
+                    if k == 'name':
+                        flattened.setdefault('restaurant_name', v)
+                    elif k == 'slug':
+                        flattened.setdefault('restaurant_slug', v)
+                    elif k == 'description':
+                        flattened.setdefault('restaurant_description', v)
+                    elif k == 'address':
+                        flattened.setdefault('restaurant_address', v)
+                    elif k == 'phone':
+                        flattened.setdefault('restaurant_phone', v)
+                    else:
+                        flattened.setdefault(k, v)
+            for k, v in data.items():
+                if k not in ('user', 'restaurant'):
+                    flattened.setdefault(k, v)
+            data = flattened
+        return super().to_internal_value(data)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():

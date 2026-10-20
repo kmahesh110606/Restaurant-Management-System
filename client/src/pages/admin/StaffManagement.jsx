@@ -62,7 +62,28 @@ export default function StaffManagement() {
       });
       fetchStaff();
     } catch (err) {
-      toast.error(err.response?.data?.username?.[0] || 'Failed to create staff account.');
+      const resData = err.response?.data;
+      let errorMsg = 'Failed to create staff account.';
+      if (resData) {
+        if (typeof resData === 'string') {
+          errorMsg = resData;
+        } else if (resData.detail) {
+          errorMsg = resData.detail;
+        } else if (typeof resData === 'object') {
+          const firstKey = Object.keys(resData)[0];
+          const firstVal = resData[firstKey];
+          if (Array.isArray(firstVal) && firstVal.length > 0) {
+            const raw = firstVal[0];
+            const cleanKey = firstKey.replace(/_/g, ' ');
+            errorMsg = raw.toLowerCase().includes(cleanKey.toLowerCase())
+              ? raw
+              : `${cleanKey}: ${raw}`;
+          } else if (typeof firstVal === 'string') {
+            errorMsg = firstVal;
+          }
+        }
+      }
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
