@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import {
-  HistoryRegular,
   ArrowClockwiseRegular,
   SearchRegular,
   PrintRegular,

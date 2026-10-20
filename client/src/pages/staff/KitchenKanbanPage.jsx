@@ -8,12 +8,10 @@ import {
   ClockRegular,
   CheckmarkCircleRegular,
   ArrowClockwiseRegular,
-  FoodRegular,
   PrintRegular,
   ChevronRightRegular,
 } from '@fluentui/react-icons';
 import { getOrders, updateOrderStatus } from '../../api/orders';
-import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -31,7 +29,6 @@ export default function KitchenKanbanPage() {
   const [orders, setOrders] = useState([]);
   const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const prevPendingCountRef = useRef(0);
   const intervalRef = useRef(null);
 
@@ -60,8 +57,7 @@ export default function KitchenKanbanPage() {
       }
       prevPendingCountRef.current = pendingCount;
       setOrders(list);
-      setLastRefreshed(new Date());
-    } catch (err) {
+    } catch {
       setLoadError(true);
     } finally {
       setLoading(false);

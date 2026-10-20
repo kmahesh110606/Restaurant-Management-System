@@ -1,3 +1,4 @@
+import EmptyState from '../../components/EmptyState';
 import CounterOrderForm from './CounterOrderForm';
 /**
  * BillerDashboard — POS and counter billing terminal.

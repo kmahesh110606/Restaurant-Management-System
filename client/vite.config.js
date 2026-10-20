@@ -1,3 +1,4 @@
+import process from 'node:process';
 import { defineConfig } from 'vite' // Import defineConfig helper from Vite
 import react from '@vitejs/plugin-react' // Import React plugin for Vite JSX transformation and Fast Refresh
 import tailwindcss from '@tailwindcss/vite' // Import Tailwind CSS plugin for Vite

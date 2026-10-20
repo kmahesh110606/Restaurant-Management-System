@@ -1,0 +1,8 @@
+{
+    email {$ACME_EMAIL}
+}
+{$DOMAIN} {
+    reverse_proxy frontend:3000 {
+        header_up X-Forwarded-Proto {scheme}
+    }
+}

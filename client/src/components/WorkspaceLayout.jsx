@@ -53,11 +53,7 @@ const BILLER_NAV = [
 ];
 
 export default function WorkspaceLayout() {
-<<<<<<< HEAD
   const { user, role, restaurant, logout, isSuperuser, isAdmin, isKitchen, isWaiter, isBiller, getDefaultPath } = useAuth();
-=======
-  const { user, role, restaurant, logout, isKitchen, isWaiter, isBiller } = useAuth();
->>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);

@@ -2,6 +2,8 @@
 
 **Application name: Restaurant Management Service (RMS).**
 
+For AWS hosting, follow the [EC2 and GitHub Actions deployment guide](docs/AWS-DEPLOYMENT.md). It includes instance creation, HTTPS, IAM policies, container deployment, backups and rollback.
+
 For unit tests, Django API integration tests, Selenium browser tests and GitHub Actions, see [Testing and CI](docs/TESTING.md). Run `npm --prefix client test`, `python server/check_local.py`, and `python tests/selenium/run.py` from this directory after installing the documented dependencies.
 
 A full-stack, multi-tenant restaurant management platform with adaptive workflows (table-based, token-based, shop/biller), role-based access, QR menu ordering, and Docker deployment.

@@ -20,7 +20,6 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const resolveQrUrl = (url) => {
   if (!url) return null;

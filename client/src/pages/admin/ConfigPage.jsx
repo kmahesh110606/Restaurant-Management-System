@@ -7,23 +7,15 @@ import EmptyState from '../../components/EmptyState';
 
 import { useEffect, useState } from 'react';
 import {
-  SettingsRegular,
+  ArrowUploadRegular,
+  CheckmarkCircleRegular,
   SaveRegular,
   ColorRegular,
   FoodRegular,
   SparkleRegular,
   ReceiptRegular,
-<<<<<<< HEAD
-  GlobeRegular,
-  CallRegular,
-  LocationRegular,
   DeleteRegular,
-  ImageRegular,
-  DismissRegular,
   PaintBrushRegular,
-  EyeRegular,
-=======
->>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
 } from '@fluentui/react-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateRestaurant, getRestaurant, removeMenuBackground } from '../../api/config';
@@ -31,7 +23,6 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import CustomSelect from '../../components/ui/CustomSelect';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const getMediaUrl = (url) => {
   if (!url) return null;
@@ -140,13 +131,9 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
-<<<<<<< HEAD
   const [bgFile, setBgFile] = useState(null);
   const [bgPreview, setBgPreview] = useState(null);
   const [deletingBg, setDeletingBg] = useState(false);
-=======
-  const [bgFile, _setBgFile] = useState(null);
->>>>>>> f1ea09e5bde2de41601195eff51aa5ce266c02c6
 
   useEffect(() => {
     if (authRestaurant?.slug) {
@@ -178,7 +165,7 @@ export default function ConfigPage() {
         setConfig(data);
       setRestaurant(data);
         toast.success('Custom menu background removed! Default brand mesh restored.');
-      } catch (err) {
+      } catch {
         toast.error('Failed to remove menu background.');
       } finally {
         setDeletingBg(false);

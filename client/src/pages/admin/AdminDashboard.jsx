@@ -9,7 +9,6 @@ import {
   ArrowTrendingLinesRegular,
   ClockRegular,
   ArrowRightRegular,
-  GridRegular,
   FoodRegular,
   TableSimpleRegular,
   SettingsRegular,
@@ -18,12 +17,10 @@ import {
 import { Link } from 'react-router-dom';
 import { getAnalyticsSummary } from '../../api/analytics';
 import { getOrders } from '../../api/orders';
-import { useAuth } from '../../contexts/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function AdminDashboard() {
-  const { restaurant } = useAuth();
   const [summary, setSummary] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loadError, setLoadError] = useState(false);

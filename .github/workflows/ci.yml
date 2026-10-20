@@ -1,11 +1,10 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -39,6 +38,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
       - name: Build
         run: npm run build
 
@@ -46,6 +48,20 @@ jobs:
     name: Backend checks and tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: rms_ci
+          POSTGRES_USER: rms_ci
+          POSTGRES_PASSWORD: disposable-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rms_ci -d rms_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: server.ci_settings
+      RMS_CI_DB_PASSWORD: disposable-ci-password
     defaults:
       run:
         working-directory: server
@@ -68,3 +84,6 @@ jobs:
 
       - name: Run backend tests
         run: python manage.py test restaurant --verbosity 2
+
+      - name: Check missing migrations
+        run: python manage.py makemigrations --check --dry-run

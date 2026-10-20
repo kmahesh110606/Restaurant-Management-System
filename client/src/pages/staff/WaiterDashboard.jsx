@@ -4,19 +4,13 @@
  */
 
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  FoodRegular,
   CheckmarkCircleRegular,
   ArrowClockwiseRegular,
-  ClockRegular,
   TableSimpleRegular,
-  PersonRegular,
-  AddRegular,
 } from '@fluentui/react-icons';
 import { getOrders, updateOrderStatus } from '../../api/orders';
 import { getTables } from '../../api/tables';
-import { useAuth } from '../../contexts/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
@@ -24,8 +18,6 @@ import LiquidPills from '../../components/ui/LiquidPills';
 import toast from 'react-hot-toast';
 
 export default function WaiterDashboard() {
-  const { restaurant } = useAuth();
-  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [tables, setTables] = useState([]);
   const [loadError, setLoadError] = useState(false);
@@ -43,7 +35,7 @@ export default function WaiterDashboard() {
       const tableList = tablesRes.data.results || tablesRes.data || [];
       setOrders(orderList);
       setTables(tableList);
-    } catch (err) {
+    } catch {
       setLoadError(true);
     } finally {
       setLoading(false);

@@ -6,7 +6,6 @@ import EmptyState from '../../components/EmptyState';
 
 import { useEffect, useState } from 'react';
 import {
-  DataBarVerticalRegular,
   ArrowTrendingLinesRegular,
   MoneyRegular,
   ReceiptRegular,

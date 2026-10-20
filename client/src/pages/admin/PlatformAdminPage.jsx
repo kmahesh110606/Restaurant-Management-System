@@ -13,7 +13,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
   BuildingShopRegular,
   PeopleRegular,
-  ReceiptRegular,
   MoneyRegular,
   SearchRegular,
   KeyRegular,
@@ -22,10 +21,8 @@ import {
   CheckmarkRegular,
   CopyRegular,
   ShieldCheckmarkRegular,
-  PersonRegular,
   LockClosedRegular,
   AlertRegular,
-  CheckmarkCircleRegular,
 } from '@fluentui/react-icons';
 import {
   getPlatformRestaurants,
@@ -48,6 +45,10 @@ export default function PlatformAdminPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  return <PlatformAdminContent />;
+}
+
+function PlatformAdminContent() {
   const [activeTab, setActiveTab] = useState('restaurants'); // 'restaurants' | 'users' | 'safety_logs'
 
   // Platform Data
