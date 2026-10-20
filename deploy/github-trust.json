@@ -9,10 +9,7 @@
         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
       },
       "StringLike": {
-        "token.actions.githubusercontent.com:sub": [
-          "repo:kmahesh110606/Restaurant-Management-System:environment:production",
-          "repo:kmahesh110606/Restaurant-Management-System:ref:refs/heads/main"
-        ]
+        "token.actions.githubusercontent.com:sub": "repo:kmahesh110606/Restaurant-Management-System:*"
       }
     }
   }]
