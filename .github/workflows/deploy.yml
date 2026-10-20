@@ -28,6 +28,15 @@ jobs:
       INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
     steps:
       - uses: actions/checkout@v4
+      - name: Show OIDC trust identifiers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken('sts.amazonaws.com');
+            core.setSecret(token);
+            const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            core.info(`OIDC subject: ${claims.sub}`);
+            core.info(`OIDC audience: ${claims.aud}`);
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
